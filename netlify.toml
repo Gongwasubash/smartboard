@@ -4,7 +4,7 @@
 
 # Ensure PDFs display inline (not download)
 [[headers]]
-  for = "/textbooks/*.pdf"
+  for = "/textbooks/**/*.pdf"
   [headers.values]
     Content-Disposition = "inline"
     Content-Type = "application/pdf"
