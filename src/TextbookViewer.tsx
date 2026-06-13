@@ -62,7 +62,7 @@ export default function TextbookViewer({ classId, subjectTitle, subjectTitleNepa
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.95, opacity: 0 }}
             className={`bg-white rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden ${
-              fullscreen ? "w-full h-full" : "w-full max-w-5xl h-[85vh]"
+              fullscreen ? "w-full h-full" : "w-full max-w-5xl sm:h-[85vh] h-full"
             }`}
             onClick={(e) => e.stopPropagation()}
           >
@@ -97,7 +97,7 @@ export default function TextbookViewer({ classId, subjectTitle, subjectTitleNepa
             </div>
 
             {/* Content */}
-            <div className="flex-1 overflow-y-auto p-6 md:p-8 bg-white">
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 bg-white">
               {loading ? (
                 <div className="flex flex-col items-center justify-center h-full gap-3 text-slate-400">
                   <Loader2 className="h-8 w-8 animate-spin" />

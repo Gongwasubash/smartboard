@@ -858,34 +858,34 @@ export default function App() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="flex-1 flex items-center justify-center p-4 md:p-8 bg-cover bg-center"
+            className="flex-1 flex items-center justify-center p-2 sm:p-4 md:p-8 bg-cover bg-center"
             style={{
               backgroundImage: `radial-gradient(circle at 10% 20%, rgba(241, 245, 249, 0.95) 0%, rgba(248, 250, 252, 0.98) 100%)`
             }}
           >
-            <div className="w-full max-w-5xl bg-white rounded-3xl overflow-hidden shadow-xl border border-slate-200 grid md:grid-cols-2">
+            <div className="w-full max-w-5xl bg-white rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl border border-slate-200 grid grid-cols-1 md:grid-cols-2">
               
-              {/* LEFT HALF COLOR PANEL */}
-              <div className="p-8 md:p-12 bg-gradient-to-br from-indigo-700 via-indigo-600 to-indigo-500 text-white flex flex-col justify-between relative overflow-hidden">
+              {/* LEFT HALF COLOR PANEL - hidden on very small screens, stacked on mobile */}
+              <div className="p-5 sm:p-8 md:p-12 bg-gradient-to-br from-indigo-700 via-indigo-600 to-indigo-500 text-white flex flex-col justify-between relative overflow-hidden md:block">
                 <div className="absolute inset-0 bg-black/10 mix-blend-overlay"></div>
                 <div className="relative z-10">
                   <div className="flex items-center gap-2 mb-4">
                     <span className="p-2 bg-white/20 rounded-xl backdrop-blur-md">
-                      <Layers className="h-6 w-6 text-white" />
+                      <Layers className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                     </span>
-                    <span className="font-display font-medium text-lg tracking-wide uppercase">AI Workspace</span>
+                    <span className="font-display font-medium text-sm sm:text-lg tracking-wide uppercase">AI Workspace</span>
                   </div>
                 </div>
 
-                <div className="my-auto py-8 relative z-10 text-center md:text-left">
+                <div className="my-auto py-4 sm:py-8 relative z-10 text-center md:text-left">
                   <motion.div
                     initial={{ y: 20, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ delay: 0.2 }}
                   >
                     {/* Educator Avatar Graphic Concept */}
-                    <div className="mb-6 flex justify-center md:justify-start">
-                      <div className="w-36 h-36 bg-white/10 rounded-full border-4 border-white/20 p-2 overflow-hidden flex items-center justify-center backdrop-blur-md">
+                    <div className="mb-4 sm:mb-6 flex justify-center md:justify-start">
+                      <div className="w-24 h-24 sm:w-36 sm:h-36 bg-white/10 rounded-full border-4 border-white/20 p-2 overflow-hidden flex items-center justify-center backdrop-blur-md">
                         <img 
                            src="https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=300&q=80" 
                           alt="Educator Representation" 
@@ -894,22 +894,22 @@ export default function App() {
                         />
                       </div>
                     </div>
-                    <h1 className="text-3xl md:text-4xl font-display font-bold tracking-tight mb-3">
+                    <h1 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold tracking-tight mb-2 sm:mb-3">
                       Welcome to SmatoroAI
                     </h1>
-                    <p className="text-white/80 font-light leading-relaxed max-w-sm">
+                    <p className="text-white/80 font-light leading-relaxed max-w-sm text-xs sm:text-sm md:text-base">
                       Empowering education through innovative AI solutions. Smart classroom content, instantly prepared.
                     </p>
                   </motion.div>
                 </div>
 
-                <div className="text-xs text-white/50 relative z-10">
+                <div className="text-[10px] sm:text-xs text-white/50 relative z-10">
                   © 2026 SmatoroAI. Smart Board Portal.
                 </div>
               </div>
 
               {/* RIGHT HALF LOGIN FORM */}
-              <div className="p-8 md:p-12 flex flex-col justify-center bg-white">
+              <div className="p-5 sm:p-8 md:p-12 flex flex-col justify-center bg-white">
                 {/* Logo alignment */}
                 <div className="text-center mb-8">
                   <div className="flex items-center justify-center gap-1.5 mb-1">
@@ -1013,8 +1013,8 @@ export default function App() {
           >
             
             {/* HEADER - Sleek White High-Quality Bar matching Picture 2 */}
-            <header className="bg-white text-slate-800 px-6 py-3 flex items-center justify-between border-b border-slate-200 shadow-sm shrink-0">
-              <div className="flex items-center gap-4">
+            <header className="bg-white text-slate-800 px-3 sm:px-6 py-2 sm:py-3 flex items-center justify-between border-b border-slate-200 shadow-sm shrink-0">
+              <div className="flex items-center gap-2 sm:gap-4">
                 {/* Left hand hamburger toggle in bright indigo styling */}
                 <button 
                   onClick={() => setLeftSidebarOpen(!leftSidebarOpen)}
@@ -1025,60 +1025,69 @@ export default function App() {
                 </button>
                 
                 {/* Logo and Name */}
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 bg-indigo-50 rounded-lg flex items-center justify-center border border-indigo-150">
-                    <BookOpen className="h-6 w-6 text-indigo-600" />
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="h-8 w-8 sm:h-10 sm:w-10 bg-indigo-50 rounded-lg flex items-center justify-center border border-indigo-150 shrink-0">
+                    <BookOpen className="h-4 w-4 sm:h-6 sm:w-6 text-indigo-600" />
                   </div>
                   <div>
-                    <h1 className="text-base font-bold tracking-tight text-slate-900 font-display flex items-center gap-1">
-                      Mysmart School
+                    <h1 className="text-sm sm:text-base font-bold tracking-tight text-slate-900 font-display flex items-center gap-1">
+                      <span className="hidden xs:inline">Mysmart</span><span>School</span>
                     </h1>
-                    <p className="text-[11px] text-slate-500 font-medium">AI Learning Portal</p>
+                    <p className="text-[10px] sm:text-[11px] text-slate-500 font-medium hidden sm:block">AI Learning Portal</p>
                   </div>
                 </div>
               </div>
 
               {/* Actions Right Side */}
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 sm:gap-2">
+                {/* Contents / AI Toolkit toggle button - mobile only */}
+                <button
+                  onClick={() => setRightSidebarOpen(!rightSidebarOpen)}
+                  className="p-2 text-slate-500 hover:text-indigo-600 hover:bg-slate-100 rounded-lg transition-colors lg:hidden"
+                  title="AI Toolkit"
+                >
+                  <FileText className="h-5 w-5" />
+                </button>
+
                 {/* Database Admin Button */}
                 <button
                   onClick={() => setIsAdminConsoleOpen(!isAdminConsoleOpen)}
-                  className={`border text-xs font-semibold px-3 py-2 rounded-xl flex items-center gap-1.5 transition-all shadow-sm ${
+                  className={`border text-xs font-semibold px-2 sm:px-3 py-1.5 sm:py-2 rounded-xl flex items-center gap-1 sm:gap-1.5 transition-all shadow-sm ${
                     isAdminConsoleOpen 
                       ? 'bg-indigo-600 text-white border-indigo-600 hover:bg-indigo-700' 
                       : 'bg-white text-indigo-600 border-indigo-200 hover:bg-indigo-50'
                   }`}
                 >
-                  <Database className="h-4 w-4" />
-                  {isAdminConsoleOpen ? 'Student Area' : 'Database Admin'}
+                  <Database className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                  <span className="hidden sm:inline">{isAdminConsoleOpen ? 'Student Area' : 'Database Admin'}</span>
                 </button>
 
                 {/* "Raise Ticket" styled perfectly like screenshot but light sleeker style */}
                 <button
                   onClick={() => setIsTicketModalOpen(true)}
-                  className="bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-semibold px-4 py-2 rounded-xl flex items-center gap-1.5 transition-colors shadow-sm"
+                  className="bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-semibold px-2 sm:px-4 py-1.5 sm:py-2 rounded-xl flex items-center gap-1 sm:gap-1.5 transition-colors shadow-sm"
                 >
-                  <HelpCircle className="h-4 w-4" />
-                  Raise Ticket
+                  <HelpCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                  <span className="hidden sm:inline">Raise Ticket</span>
                 </button>
 
-                <div className="h-8 w-[1px] bg-slate-200"></div>
+                <div className="h-6 sm:h-8 w-[1px] bg-slate-200 hidden sm:block"></div>
 
                 {/* Notifications & Settings icons matching screenshot */}
-                <button className="p-2 text-slate-500 hover:text-indigo-600 hover:bg-slate-55 rounded-lg transition-colors relative">
-                  <Bell className="h-5 w-5" />
+                <button className="p-1.5 sm:p-2 text-slate-500 hover:text-indigo-600 hover:bg-slate-55 rounded-lg transition-colors relative hidden sm:block">
+                  <Bell className="h-4 w-4 sm:h-5 sm:w-5" />
                   <span className="absolute top-1 right-1 h-2 w-2 bg-indigo-600 rounded-full"></span>
                 </button>
 
-                <button className="p-2 text-slate-500 hover:text-indigo-600 hover:bg-slate-55 rounded-lg transition-colors">
-                  <Settings className="h-5 w-5" />
+                <button className="p-1.5 sm:p-2 text-slate-500 hover:text-indigo-600 hover:bg-slate-55 rounded-lg transition-colors hidden sm:block">
+                  <Settings className="h-4 w-4 sm:h-5 sm:w-5" />
                 </button>
 
-                <div className="h-8 w-[1px] bg-slate-200"></div>
+                <div className="h-6 sm:h-8 w-[1px] bg-slate-200 hidden sm:block"></div>
 
                 {/* User Avatar Card matching Anil Bk in the screenshot */}
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-slate-100 border border-slate-100 rounded-full overflow-hidden shadow-inner flex items-center justify-center">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="h-8 w-8 sm:h-10 sm:w-10 bg-slate-100 border border-slate-100 rounded-full overflow-hidden shadow-inner flex items-center justify-center shrink-0">
                     <img 
                       src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80" 
                       alt="User Profiler" 
@@ -1086,13 +1095,13 @@ export default function App() {
                       referrerPolicy="no-referrer"
                     />
                   </div>
-                  <div className="hidden sm:block text-left text-xs">
+                  <div className="hidden md:block text-left text-xs">
                     <p className="font-bold text-slate-800">{userName}</p>
                     <p className="text-[10px] text-indigo-600 font-mono capitalize font-semibold">{userType}</p>
                   </div>
                   <button 
                     onClick={handleLogout}
-                    className="p-1 px-2 border border-slate-200 rounded text-xs hover:bg-slate-100 transition-colors"
+                    className="p-1 px-1.5 sm:px-2 border border-slate-200 rounded text-xs hover:bg-slate-100 transition-colors"
                     title="Logout"
                   >
                     <LogOut className="h-3 w-3 text-slate-600" />
@@ -1102,8 +1111,22 @@ export default function App() {
             </header>
 
             {/* THREE PANEL GRID LAYOUT */}
-            <div className="flex-1 flex overflow-hidden">
+            <div className="flex-1 flex overflow-hidden relative">
               
+              {/* LEFT SIDEBAR BACKDROP - mobile only */}
+              <AnimatePresence>
+                {leftSidebarOpen && (
+                  <motion.div
+                    key="lb"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    onClick={() => setLeftSidebarOpen(false)}
+                    className="fixed inset-0 bg-black/40 z-20 lg:hidden"
+                  />
+                )}
+              </AnimatePresence>
+
               {/* LEFT SIDEBAR: RESOURCES (Curriculum Class-folders) */}
               <AnimatePresence initial={false}>
                 {leftSidebarOpen && (
@@ -1111,7 +1134,7 @@ export default function App() {
                     initial={{ width: 0, opacity: 0 }}
                     animate={{ width: 280, opacity: 1 }}
                     exit={{ width: 0, opacity: 0 }}
-                    className="border-r border-slate-200 bg-slate-50 flex flex-col shrink-0 text-slate-800 overflow-hidden"
+                    className="absolute inset-y-0 left-0 z-30 lg:relative lg:inset-y-auto lg:z-auto border-r border-slate-200 bg-slate-50 flex flex-col shrink-0 text-slate-800 overflow-hidden shadow-2xl lg:shadow-none"
                   >
                     <div className="p-3 border-b border-slate-200 bg-white flex items-center justify-between">
                       <div className="flex items-center gap-2">
@@ -1120,7 +1143,7 @@ export default function App() {
                         </span>
                         <span className="font-semibold text-xs tracking-wide text-slate-800 uppercase font-display">Classes & Subjects</span>
                       </div>
-                      <button onClick={() => setLeftSidebarOpen(false)} className="hover:text-slate-800 p-1">
+                      <button onClick={() => setLeftSidebarOpen(false)} className="hover:text-slate-800 p-1 lg:hidden">
                         <ChevronRight className="h-4 w-4 rotate-180" />
                       </button>
                     </div>
@@ -1137,20 +1160,20 @@ export default function App() {
               </AnimatePresence>
 
               {/* CENTER CONSOLE: DOCUMENT CANVAS */}
-              <main className="flex-1 bg-slate-50 flex flex-col overflow-y-auto p-6 relative text-slate-900">
+              <main className="flex-1 bg-slate-50 flex flex-col overflow-y-auto p-3 sm:p-6 relative text-slate-900">
                 
                 {isAdminConsoleOpen ? (
                   <div className="w-full max-w-5xl mx-auto space-y-6">
                     {/* Header Banner */}
-                    <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-6 rounded-2xl border border-slate-800 shadow-lg relative overflow-hidden">
-                      <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="p-1 px-2.5 bg-indigo-500/20 text-indigo-300 text-[10px] font-bold tracking-wider rounded-md border border-indigo-400/25 uppercase">Database Control Hub</span>
-                            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-4 sm:p-6 rounded-xl sm:rounded-2xl border border-slate-800 shadow-lg relative overflow-hidden">
+                      <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-3 sm:gap-4">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="p-1 px-2 bg-indigo-500/20 text-indigo-300 text-[10px] font-bold tracking-wider rounded-md border border-indigo-400/25 uppercase">Database Control Hub</span>
+                            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
                             <span className="text-[10px] font-semibold text-emerald-400 uppercase font-mono">Live Firestore Active</span>
                           </div>
-                          <h2 className="text-2xl font-black tracking-tight font-display mt-1.5 bg-gradient-to-r from-white via-indigo-100 to-slate-200 bg-clip-text text-transparent">
+                          <h2 className="text-lg sm:text-2xl font-black tracking-tight font-display mt-1.5 bg-gradient-to-r from-white via-indigo-100 to-slate-200 bg-clip-text text-transparent">
                             School Roll Database Admin Console
                           </h2>
                           <p className="text-xs text-slate-400 mt-1 max-w-xl">
@@ -1158,7 +1181,7 @@ export default function App() {
                           </p>
                         </div>
                         {/* Tab Selectors */}
-                        <div className="flex bg-slate-800 p-1 rounded-xl border border-slate-700 select-none self-start md:self-center">
+                        <div className="flex bg-slate-800 p-1 rounded-xl border border-slate-700 select-none self-start md:self-center overflow-x-auto">
                           <button
                             onClick={() => setAdminActiveTab('editor')}
                             className={`p-2 px-4 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
@@ -1187,7 +1210,7 @@ export default function App() {
 
                     {/* Active tab contents */}
                     {adminActiveTab === 'editor' ? (
-                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
                         {/* Col 1: Classes & Subjects */}
                         <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-col space-y-4">
                           <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
@@ -1808,13 +1831,13 @@ service cloud.firestore {
                   
                   
                   <div className="w-full max-w-5xl mx-auto flex flex-col h-full">
-                    <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center justify-between mb-3 sm:mb-4">
                       <div>
-                        <h2 className="text-xl font-bold font-display text-slate-900">Nepal Government Textbooks</h2>
-                        <p className="text-xs text-slate-500">Curriculum Development Centre</p>
+                        <h2 className="text-base sm:text-xl font-bold font-display text-slate-900">Nepal Government Textbooks</h2>
+                        <p className="text-[10px] sm:text-xs text-slate-500">Curriculum Development Centre</p>
                       </div>
                     </div>
-                    <div className="flex-1 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div className="flex-1 bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                       <TextbookView selectedSubject={textbookSelectedSubject} selectedChapter={textbookSelectedChapter} />
                     </div>
                   </div>
@@ -1822,21 +1845,21 @@ service cloud.firestore {
                   
                   {/* GENERATED CONTENT DISPLAY */}
                   {generatedContent && generatedTool && (
-                    <div className="w-full max-w-5xl mx-auto mt-6">
-                      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                        <div className="px-6 py-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+                    <div className="w-full max-w-5xl mx-auto mt-4 sm:mt-6">
+                      <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                        <div className="px-3 sm:px-6 py-3 sm:py-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <Sparkles className="h-4 w-4 text-indigo-600" />
-                            <h3 className="font-bold text-sm text-slate-900">Generated {generatedTool}</h3>
+                            <h3 className="font-bold text-xs sm:text-sm text-slate-900">Generated {generatedTool}</h3>
                           </div>
                           <button
                             onClick={() => { setGeneratedContent(null); setGeneratedTool(null); }}
-                            className="text-xs text-slate-500 hover:text-red-600 bg-white border border-slate-200 px-3 py-1.5 rounded-lg"
+                            className="text-xs text-slate-500 hover:text-red-600 bg-white border border-slate-200 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg"
                           >
                             Clear
                           </button>
                         </div>
-                        <div className="p-6 max-h-[600px] overflow-y-auto">
+                        <div className="p-3 sm:p-6 max-h-[600px] overflow-y-auto">
                           {isAiLoading ? (
                             <div className="flex items-center justify-center py-12">
                               <RefreshCw className="h-6 w-6 animate-spin text-indigo-600" />
@@ -1847,12 +1870,12 @@ service cloud.firestore {
                               {generatedContent.slides.map((slide: any, idx: number) => (
                                 <div
                                   key={idx}
-                                  className={`p-4 rounded-xl border transition-all ${idx === activeSlideIndex ? 'border-indigo-400 bg-indigo-50 shadow-md' : 'border-slate-200 bg-white'}`}
+                                  className={`p-3 sm:p-4 rounded-xl border transition-all cursor-pointer ${idx === activeSlideIndex ? 'border-indigo-400 bg-indigo-50 shadow-md' : 'border-slate-200 bg-white'}`}
                                   onClick={() => setActiveSlideIndex(idx)}
                                 >
-                                  <div className="flex items-center justify-between mb-2">
-                                    <h4 className="font-bold text-sm text-slate-900">Slide {idx + 1}: {slide.title}</h4>
-                                    {idx === activeSlideIndex && <span className="text-[10px] text-indigo-600 font-semibold bg-indigo-100 px-2 py-0.5 rounded-full">Active</span>}
+                                  <div className="flex items-center justify-between mb-2 gap-2">
+                                    <h4 className="font-bold text-xs sm:text-sm text-slate-900">Slide {idx + 1}: {slide.title}</h4>
+                                    {idx === activeSlideIndex && <span className="text-[10px] text-indigo-600 font-semibold bg-indigo-100 px-2 py-0.5 rounded-full shrink-0">Active</span>}
                                   </div>
                                   <ul className="list-disc list-inside space-y-1 text-xs text-slate-700">
                                     {slide.bullets?.map((b: string, bi: number) => <li key={bi}>{b}</li>)}
@@ -1897,8 +1920,8 @@ service cloud.firestore {
                                 </button>
                               </div>
                               {generatedContent.questions.map((q: any, qi: number) => (
-                                <div key={qi} className="border border-slate-200 rounded-xl p-4">
-                                  <p className="text-sm font-semibold text-slate-900 mb-3">
+                                <div key={qi} className="border border-slate-200 rounded-xl p-3 sm:p-4">
+                                  <p className="text-xs sm:text-sm font-semibold text-slate-900 mb-3">
                                     <span className="text-indigo-600 mr-2">Q{qi + 1}.</span>{q.question}
                                   </p>
                                   <div className="space-y-2">
@@ -1906,7 +1929,7 @@ service cloud.firestore {
                                       const answered = quizAnswers[qi] !== undefined;
                                       const isCorrect = oi === q.answerIndex;
                                       const isSelected = quizAnswers[qi] === oi;
-                                      let btnClass = 'w-full text-left p-3 rounded-xl text-xs border transition-all ';
+                                      let btnClass = 'w-full text-left p-2.5 sm:p-3 rounded-xl text-xs border transition-all ';
                                       if (!answered) {
                                         btnClass += 'border-slate-200 bg-white hover:border-indigo-300 hover:bg-indigo-50 text-slate-700';
                                       } else if (isCorrect) {
@@ -1941,7 +1964,7 @@ service cloud.firestore {
                               ))}
                             </div>
                           ) : generatedTool === 'Vocabulary' && generatedContent.vocabulary ? (
-                            <div className="grid gap-3 sm:grid-cols-2">
+                            <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
                               {generatedContent.vocabulary.map((v: any, vi: number) => (
                                 <div key={vi} className="border border-slate-200 rounded-xl p-4 bg-white hover:border-indigo-200 transition-colors">
                                   <h4 className="font-bold text-sm text-indigo-700 mb-1">{v.word}</h4>
@@ -1953,7 +1976,7 @@ service cloud.firestore {
                               ))}
                             </div>
                           ) : generatedTool === 'Flashcard' && generatedContent.cards ? (
-                            <div className="grid gap-4 sm:grid-cols-2">
+                            <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
                               {generatedContent.cards.map((card: any, ci: number) => {
                                 const isFlipped = flippedCards[ci] || false;
                                 return (
@@ -2085,7 +2108,7 @@ service cloud.firestore {
                               <div className="text-center mb-6">
                                 <h4 className="text-lg font-bold text-indigo-700">{generatedContent.root.name}</h4>
                               </div>
-                              <div className="grid gap-4 sm:grid-cols-2">
+                              <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
                                 {generatedContent.root.children?.map((child: any, ci: number) => (
                                   <div key={ci} className="border border-slate-200 rounded-xl p-4 bg-slate-50">
                                     <h5 className="font-bold text-sm text-slate-900 mb-1">{child.name}</h5>
@@ -2132,19 +2155,19 @@ service cloud.firestore {
                   {!textbookSelectedSubject && !generatedContent && (
                    
                    // WELCOME DESK
-                   <div className="flex-1 flex flex-col items-center justify-center text-center p-6 space-y-6">
+                   <div className="flex-1 flex flex-col items-center justify-center text-center p-4 sm:p-6 space-y-4 sm:space-y-6">
                     <motion.div
                       initial={{ scale: 0.95, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
                       transition={{ duration: 0.3 }}
-                      className="max-w-md bg-white border border-slate-200 p-8 rounded-3xl shadow-sm flex flex-col items-center"
+                      className="max-w-xs sm:max-w-md bg-white border border-slate-200 p-6 sm:p-8 rounded-2xl sm:rounded-3xl shadow-sm flex flex-col items-center"
                     >
-                      <div className="w-20 h-20 bg-indigo-50 rounded-full border border-indigo-100 flex items-center justify-center mb-6">
-                        <BookOpen className="h-10 w-10 text-indigo-600" />
+                      <div className="w-16 h-16 sm:w-20 sm:h-20 bg-indigo-50 rounded-full border border-indigo-100 flex items-center justify-center mb-4 sm:mb-6">
+                        <BookOpen className="h-8 w-8 sm:h-10 sm:w-10 text-indigo-600" />
                       </div>
                       
-                      <h3 className="text-xl font-bold font-display text-slate-900 mb-2">Nepal Government Textbooks</h3>
-                      <p className="text-sm text-slate-500 mt-1 leading-relaxed">
+                      <h3 className="text-base sm:text-xl font-bold font-display text-slate-900 mb-2">Nepal Government Textbooks</h3>
+                      <p className="text-xs sm:text-sm text-slate-500 mt-1 leading-relaxed">
                         Browse Classes 1 to 10 textbooks from the sidebar. Expand a class and select a subject to start reading.
                       </p>
                     </motion.div>
@@ -2153,6 +2176,20 @@ service cloud.firestore {
                 
               </main>
 
+              {/* RIGHT SIDEBAR BACKDROP - mobile only */}
+              <AnimatePresence>
+                {rightSidebarOpen && (
+                  <motion.div
+                    key="rb"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    onClick={() => setRightSidebarOpen(false)}
+                    className="fixed inset-0 bg-black/40 z-20 lg:hidden"
+                  />
+                )}
+              </AnimatePresence>
+
               {/* RIGHT SIDEBAR: CONTENTS INTERACTIVE AI OPTIONS (Slides, MCQ, etc.) - matching picture 2 */}
               <AnimatePresence initial={false}>
                 {rightSidebarOpen && (
@@ -2160,7 +2197,7 @@ service cloud.firestore {
                     initial={{ width: 0, opacity: 0 }}
                     animate={{ width: 260, opacity: 1 }}
                     exit={{ width: 0, opacity: 0 }}
-                    className="border-l border-slate-200 bg-slate-50 overflow-y-auto flex flex-col shrink-0 text-slate-800"
+                    className="absolute inset-y-0 right-0 z-30 lg:relative lg:inset-y-auto lg:z-auto border-l border-slate-200 bg-slate-50 overflow-y-auto flex flex-col shrink-0 text-slate-800 shadow-2xl lg:shadow-none"
                   >
                     {/* Panel Title */}
                     <div className="p-4 border-b border-slate-200 flex items-center justify-between text-slate-650 bg-white">
@@ -2170,7 +2207,7 @@ service cloud.firestore {
                         </span>
                         <span className="font-semibold text-sm tracking-wide text-slate-800 uppercase font-display">Contents</span>
                       </div>
-                      <button onClick={() => setRightSidebarOpen(false)} className="hover:text-slate-800 p-1">
+                      <button onClick={() => setRightSidebarOpen(false)} className="hover:text-slate-800 p-1 lg:hidden">
                         <ChevronRight className="h-4 w-4" />
                       </button>
                     </div>
@@ -2211,13 +2248,13 @@ service cloud.firestore {
             </div>
 
             {/* CHATBOT ROBOT BUTTON - Matching bottom-right floating badge */}
-            <div className="fixed bottom-6 right-6 z-40">
+            <div className="fixed bottom-4 sm:bottom-6 right-4 sm:right-6 z-40">
               <button
                 onClick={() => setIsChatOpen(!isChatOpen)}
-                className="w-14 h-14 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full flex items-center justify-center shadow-2xl hover:scale-105 active:scale-95 transition-all outline-none border-4 border-slate-50"
+                className="w-12 h-12 sm:w-14 sm:h-14 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full flex items-center justify-center shadow-2xl hover:scale-105 active:scale-95 transition-all outline-none border-4 border-slate-50"
                 title="Ask Smatoro AI Classroom helper"
               >
-                <Sparkles className="h-6 w-6" />
+                <Sparkles className="h-5 w-5 sm:h-6 sm:w-6" />
               </button>
             </div>
 
@@ -2228,7 +2265,7 @@ service cloud.firestore {
                   initial={{ opacity: 0, y: 50, scale: 0.9 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 50, scale: 0.9 }}
-                  className="fixed bottom-24 right-6 w-80 md:w-96 h-[500px] bg-white border border-slate-205 rounded-2xl flex flex-col shadow-2xl z-50 overflow-hidden"
+                  className="fixed inset-x-0 bottom-0 sm:bottom-24 sm:right-6 sm:left-auto sm:w-96 h-[85vh] sm:h-[500px] bg-white border border-slate-205 rounded-t-2xl sm:rounded-2xl flex flex-col shadow-2xl z-50 overflow-hidden"
                 >
                   {/* Chat header */}
                   <div className="bg-indigo-600 p-4 text-white flex items-center justify-between">
@@ -2290,32 +2327,32 @@ service cloud.firestore {
             {/* GENERATE CONTENT DIALOG / CONFIGURATION MODAL (Matches screenshots 6, 7, 8) */}
             <AnimatePresence>
               {isGenerateModalOpen && activeGenerationTool && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 z-50">
                   <motion.div
                     initial={{ opacity: 0, scale: 0.95, y: 10 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                    className="w-full max-w-md bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-xl p-6 text-slate-850"
+                    className="w-full max-w-md bg-white border border-slate-200 rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl p-4 sm:p-6 text-slate-850 mx-2 sm:mx-0"
                   >
                     {/* Header */}
-                    <div className="flex items-center justify-between pb-4 border-b border-slate-100">
-                      <div>
-                        <h3 className="text-lg font-bold font-display text-slate-900">Generate Content</h3>
+                    <div className="flex items-center justify-between pb-3 sm:pb-4 border-b border-slate-100">
+                      <div className="min-w-0">
+                        <h3 className="text-base sm:text-lg font-bold font-display text-slate-900">Generate Content</h3>
                         <p className="text-xs text-slate-500 mt-1">
                           Configure settings for <span className="text-indigo-600 font-bold">{activeGenerationTool}</span>
                         </p>
                       </div>
-                      <button onClick={() => setIsGenerateModalOpen(false)} className="text-slate-400 hover:text-slate-600">
+                      <button onClick={() => setIsGenerateModalOpen(false)} className="text-slate-400 hover:text-slate-600 shrink-0 ml-2">
                         <X className="h-5 w-5" />
                       </button>
                     </div>
 
                     {/* Form Controls */}
-                    <div className="py-6 space-y-6">
+                    <div className="py-4 sm:py-6 space-y-4 sm:space-y-6">
                       
                       {/* Quantity Slider matching style in screenshots 6, 8 */}
                       {['MCQ', 'Vocabulary', 'Flashcard'].includes(activeGenerationTool) && (
-                        <div className="space-y-3">
+                        <div className="space-y-2 sm:space-y-3">
                           <div className="flex items-center justify-between text-xs text-slate-700">
                             <span className="font-semibold block font-sans">Quantity</span>
                             <span className="bg-indigo-50 text-indigo-700 font-bold h-6 w-6 rounded-full flex items-center justify-center text-xs border border-indigo-150">
@@ -2340,7 +2377,7 @@ service cloud.firestore {
 
                       {/* Question Type Filter buttons matching style in screenshot 6 */}
                       {activeGenerationTool === 'MCQ' && (
-                        <div className="space-y-3">
+                        <div className="space-y-2 sm:space-y-3">
                           <label className="text-xs font-semibold text-slate-755 block font-sans">Question Type</label>
                           <div className="grid grid-cols-2 gap-2">
                             {(['Knowledge based', 'Understanding', 'Application', 'Higher Ability'] as const).map((tp) => {
@@ -2349,7 +2386,7 @@ service cloud.firestore {
                                 <button
                                   key={tp}
                                   onClick={() => setModalSettings(prev => ({ ...prev, questionType: tp }))}
-                                  className={`p-3 rounded-xl text-xs font-medium text-center transition-all ${
+                                  className={`p-2 sm:p-3 rounded-xl text-xs font-medium text-center transition-all ${
                                     active 
                                       ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm' 
                                       : 'bg-slate-100 border border-slate-200 text-slate-600 hover:bg-slate-200'
@@ -2364,7 +2401,7 @@ service cloud.firestore {
                       )}
 
                       {/* Difficulty Level selector buttons matching screenshot 6, 7, 8 */}
-                      <div className="space-y-3">
+                      <div className="space-y-2 sm:space-y-3">
                         <label className="text-xs font-semibold text-slate-755 block font-sans">Difficulty Level</label>
                         <div className="grid grid-cols-3 gap-2">
                           {(['Easy', 'Medium', 'Hard'] as const).map((dl) => {
@@ -2373,7 +2410,7 @@ service cloud.firestore {
                               <button
                                 key={dl}
                                 onClick={() => setModalSettings(prev => ({ ...prev, difficulty: dl }))}
-                                className={`p-3 rounded-xl text-xs font-medium text-center border transition-all ${
+                                className={`p-2 sm:p-3 rounded-xl text-xs font-medium text-center border transition-all ${
                                   active 
                                     ? 'border-indigo-600 text-indigo-750 bg-indigo-50 font-semibold shadow-sm' 
                                     : 'border-slate-200 bg-slate-50 text-slate-650 hover:bg-slate-100'
@@ -2389,16 +2426,16 @@ service cloud.firestore {
                     </div>
 
                     {/* Actions Form Footer */}
-                    <div className="flex gap-3 justify-end pt-4 border-t border-slate-100">
+                    <div className="flex gap-2 sm:gap-3 justify-end pt-3 sm:pt-4 border-t border-slate-100">
                       <button
                         onClick={() => setIsGenerateModalOpen(false)}
-                        className="p-3 px-5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-medium rounded-xl text-xs transition-colors"
+                        className="p-2 sm:p-3 px-3 sm:px-5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-medium rounded-xl text-xs transition-colors"
                       >
                         Cancel
                       </button>
                       <button
                         onClick={triggerGeneration}
-                        className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-6 rounded-xl text-xs shadow-sm transform hover:-translate-y-0.5 transition-all flex items-center justify-center gap-1.5"
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 sm:py-3 px-4 sm:px-6 rounded-xl text-xs shadow-sm transform hover:-translate-y-0.5 transition-all flex items-center justify-center gap-1.5"
                       >
                         <Sparkles className="h-4 w-4" />
                         <span>Generate</span>
@@ -2413,33 +2450,33 @@ service cloud.firestore {
             {/* TICKETS HELP DIALOG */}
             <AnimatePresence>
               {isTicketModalOpen && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 z-50">
                   <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.95 }}
-                    className="w-full max-w-md bg-white border border-slate-200 rounded-2xl overflow-hidden p-6 shadow-xl text-left text-slate-800"
+                    className="w-full max-w-md bg-white border border-slate-200 rounded-2xl overflow-hidden p-4 sm:p-6 shadow-xl text-left text-slate-800 mx-2 sm:mx-0"
                   >
                     <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
-                      <h3 className="text-base font-bold text-slate-900 flex items-center gap-1.5 font-display">
-                        <HelpCircle className="text-indigo-600 h-5 w-5" />
-                        Raise Classroom Support Ticket
+                      <h3 className="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-1.5 font-display">
+                        <HelpCircle className="text-indigo-600 h-5 w-5 shrink-0" />
+                        <span>Raise Classroom Support Ticket</span>
                       </h3>
-                      <button onClick={() => setIsTicketModalOpen(false)} className="text-slate-400 hover:text-slate-600">
+                      <button onClick={() => setIsTicketModalOpen(false)} className="text-slate-400 hover:text-slate-600 shrink-0 ml-2">
                         <X className="h-5 w-5" />
                       </button>
                     </div>
 
                     {ticketStatus === 'success' ? (
-                      <div className="py-6 text-center space-y-3">
+                      <div className="py-4 sm:py-6 text-center space-y-3">
                         <div className="h-12 w-12 bg-emerald-50 rounded-full flex items-center justify-center mx-auto border border-emerald-250">
                           <Check className="h-6 w-6 text-emerald-600" />
                         </div>
                         <h4 className="font-semibold text-slate-900">Ticket Submitted Successfully!</h4>
-                        <p className="text-xs text-slate-500 font-medium">Your school technical helpdesk has been notified. Support ID: #SM-${Math.floor(1000 + Math.random() * 9000)}</p>
+                        <p className="text-xs text-slate-500 font-medium">Your school technical helpdesk has been notified.</p>
                       </div>
                     ) : (
-                      <form onSubmit={handleRaiseTicket} className="space-y-4">
+                      <form onSubmit={handleRaiseTicket} className="space-y-3 sm:space-y-4">
                         <div className="space-y-1">
                           <label className="text-xs font-semibold text-slate-700">Issue Subject</label>
                           <input
