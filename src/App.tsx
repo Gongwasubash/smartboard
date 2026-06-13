@@ -6,7 +6,7 @@ import {
   Check, X, FileText, Lightbulb, Video, Layers, Compass, Users,
   Award, ListTodo, Share2, LogOut, Volume2, ArrowLeft, ArrowRight,
   RefreshCw, SlidersHorizontal, Eye, EyeOff, Mail, Lock, UserCheck,
-  Plus, Trash2, Edit, Database, UploadCloud, CheckCircle2, Play, Tv
+  Plus, Trash2, Edit, Database, UploadCloud, CheckCircle2, Play, Tv, Target
 } from 'lucide-react';
 import { CURRICULUM_DATA } from './data';
 import { ClassLevel, Subject, Chapter, Topic, ContentTool, GenerationSettings } from './types';
@@ -98,7 +98,7 @@ export default function App() {
         const res = await fetch(mdUrl);
         if (res.ok) {
           const fullText = await res.text();
-          chapterContent = extractChapterContent(fullText, ch.title, ch.sectionTitle);
+          chapterContent = extractChapterContent(fullText, ch.title, ch.page);
         }
       } catch (e) {
         console.warn('Could not load textbook content:', e);
@@ -117,58 +117,45 @@ export default function App() {
     }
   };
 
-  // Extract chapter content from textbook markdown
-  function extractChapterContent(fullText: string, chapterTitle: string, sectionTitle?: string): string {
-    // Strip "Unit N:" or "Chapter N:" prefix from title for matching
+  // Extract chapter content from textbook markdown using page numbers or title matching
+  function extractChapterContent(fullText: string, chapterTitle: string, startPage: number): string {
+    if (!fullText) return '';
+
+    const MAX_CHARS = 12000;
+
+    // Strategy 1: Page-based extraction (works for Preeti-encoded Nepali textbooks)
+    const pageRegex = new RegExp(`---\\s*Page\\s+${startPage}\\s*---`, 'i');
+    const pageMatch = fullText.match(pageRegex);
+    if (pageMatch) {
+      const fromStart = pageMatch.index! + pageMatch[0].length;
+      const remaining = fullText.slice(fromStart);
+      // Find the next page marker
+      const nextPageMatch = remaining.match(/---\s*Page\s+\d+\s*---/i);
+      const endIdx = nextPageMatch
+        ? fromStart + nextPageMatch.index!
+        : Math.min(fromStart + MAX_CHARS, fullText.length);
+      const extracted = fullText.slice(fromStart, endIdx).trim();
+      if (extracted.length > 100) return extracted;
+    }
+
+    // Strategy 2: Title-based extraction (works for English textbooks)
     const titleClean = chapterTitle.replace(/^(Unit|Chapter)\s+\d+[:\s]+/i, '').trim();
-    
-    // Try to find section first (more specific), then chapter
-    const searchTerms = [sectionTitle, titleClean, chapterTitle].filter(Boolean) as string[];
-    
-    let startIdx = -1;
-    let matchedTerm = '';
-    for (const term of searchTerms) {
-      startIdx = fullText.indexOf(term);
-      if (startIdx !== -1) { matchedTerm = term; break; }
-      // Try first 25 chars
-      if (term.length > 25) {
-        const short = term.substring(0, 25);
-        startIdx = fullText.indexOf(short);
-        if (startIdx !== -1) { matchedTerm = short; break; }
+    for (const term of [titleClean, chapterTitle].filter(Boolean) as string[]) {
+      const idx = fullText.indexOf(term);
+      if (idx !== -1) {
+        const fromStart = fullText.lastIndexOf('\n', idx) + 1;
+        const remaining = fullText.slice(fromStart);
+        const nextHeading = remaining.search(/\n(?=(Unit|Chapter)\s+\d+)/i);
+        const endIdx = nextHeading !== -1
+          ? fromStart + nextHeading
+          : Math.min(fromStart + MAX_CHARS, fullText.length);
+        const extracted = fullText.slice(fromStart, endIdx).trim();
+        if (extracted.length > 100) return extracted;
       }
     }
 
-    // If not found by title, try chapter number pattern
-    if (startIdx === -1) {
-      const numMatch = chapterTitle.match(/(\d+)/);
-      if (numMatch) {
-        const num = numMatch[1];
-        const patterns = [
-          new RegExp(`\\b(Unit|Chapter)\\s+${num}[\\s:]`, 'i'),
-          new RegExp(`\\bkf7\\s+[${num}!@#$%^&*()]`, 'i'),
-          new RegExp(`^\\s*${num}\\s*$`, 'm'),
-        ];
-        for (const pat of patterns) {
-          const m = fullText.match(pat);
-          if (m) { startIdx = m.index; break; }
-        }
-      }
-    }
-    
-    if (startIdx === -1) return ''; // Nothing found
-    
-    // Move to line start
-    const fromStart = fullText.lastIndexOf('\n', startIdx) + 1;
-    
-    // Find next chapter heading (stop point)
-    const remaining = fullText.slice(fromStart);
-    const nextHeading = remaining.search(/\n(?=(Unit|Chapter|kf7)\s+\d+)/i);
-    
-    const endIdx = nextHeading !== -1
-      ? fromStart + nextHeading
-      : Math.min(fromStart + 8000, fullText.length); // Cap at 8000 chars
-    
-    return fullText.slice(fromStart, endIdx).trim();
+    // Strategy 3: Send first portion of file content (better than generic prompt)
+    return fullText.slice(0, MAX_CHARS).trim();
   }
   
   // Selected IDs during admin editing
@@ -1913,184 +1900,361 @@ service cloud.firestore {
                   
                   {/* GENERATED CONTENT DISPLAY */}
                   {generatedContent && generatedTool && (
-                    <div className="w-full max-w-5xl mx-auto mt-4 sm:mt-6">
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="w-full max-w-5xl mx-auto mt-4 sm:mt-6"
+                    >
                       <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                        <div className="px-3 sm:px-6 py-3 sm:py-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+                        <div className="px-3 sm:px-6 py-3 sm:py-4 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-indigo-50/30 flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <Sparkles className="h-4 w-4 text-indigo-600" />
-                            <h3 className="font-bold text-xs sm:text-sm text-slate-900">Generated {generatedTool}</h3>
+                            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                              <Sparkles className="h-4 w-4 text-white" />
+                            </div>
+                            <div>
+                              <h3 className="font-bold text-xs sm:text-sm text-slate-900">Generated {generatedTool}</h3>
+                              <p className="text-[10px] text-slate-500">{selectedTopic?.title}</p>
+                            </div>
                           </div>
                           <button
                             onClick={() => { setGeneratedContent(null); setGeneratedTool(null); }}
-                            className="text-xs text-slate-500 hover:text-red-600 bg-white border border-slate-200 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg"
+                            className="text-xs text-slate-500 hover:text-red-600 hover:bg-red-50 bg-white border border-slate-200 px-3 py-1.5 rounded-xl hover:border-red-200 transition-all flex items-center gap-1.5"
                           >
-                            Clear
+                            <X className="h-3.5 w-3.5" /> Clear
                           </button>
                         </div>
                         <div className="p-3 sm:p-6 max-h-[600px] overflow-y-auto">
                           {isAiLoading ? (
-                            <div className="flex items-center justify-center py-12">
-                              <RefreshCw className="h-6 w-6 animate-spin text-indigo-600" />
-                              <span className="ml-3 text-sm text-slate-500">Generating {generatedTool}...</span>
+                            <div className="space-y-4 py-6">
+                              {/* Animated dots header */}
+                              <div className="flex items-center justify-center gap-2 mb-6">
+                                <div className="flex gap-1.5">
+                                  <motion.div animate={{ scale: [1, 1.3, 1] }} transition={{ repeat: Infinity, duration: 0.8, delay: 0 }} className="h-2.5 w-2.5 rounded-full bg-indigo-600" />
+                                  <motion.div animate={{ scale: [1, 1.3, 1] }} transition={{ repeat: Infinity, duration: 0.8, delay: 0.15 }} className="h-2.5 w-2.5 rounded-full bg-indigo-500" />
+                                  <motion.div animate={{ scale: [1, 1.3, 1] }} transition={{ repeat: Infinity, duration: 0.8, delay: 0.3 }} className="h-2.5 w-2.5 rounded-full bg-indigo-400" />
+                                </div>
+                                <span className="text-sm text-slate-500 ml-2">Creating your {generatedTool}...</span>
+                              </div>
+                              {/* Skeleton cards */}
+                              {[1, 2, 3].map((i) => (
+                                <motion.div
+                                  key={i}
+                                  initial={{ opacity: 0, y: 10 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  transition={{ delay: i * 0.1 }}
+                                  className="border border-slate-200 rounded-xl overflow-hidden"
+                                >
+                                  <div className="h-9 bg-gradient-to-r from-indigo-100 via-indigo-50 to-slate-100 animate-pulse" />
+                                  <div className="p-4 space-y-3">
+                                    <div className="h-3 bg-slate-100 rounded-full animate-pulse w-3/4" />
+                                    <div className="h-3 bg-slate-100 rounded-full animate-pulse w-1/2" />
+                                    <div className="h-3 bg-slate-100 rounded-full animate-pulse w-5/6" />
+                                    <div className="h-3 bg-slate-100 rounded-full animate-pulse w-2/3" />
+                                  </div>
+                                </motion.div>
+                              ))}
                             </div>
                           ) : generatedTool === 'Slides' && generatedContent.slides ? (
                             <div className="space-y-4">
+                              {/* Slide progress bar */}
+                              {generatedContent.slides.length > 1 && (
+                                <div className="flex items-center gap-2 px-1">
+                                  {generatedContent.slides.map((_: any, idx: number) => (
+                                    <div
+                                      key={idx}
+                                      onClick={() => setActiveSlideIndex(idx)}
+                                      className={`h-1.5 flex-1 rounded-full cursor-pointer transition-all ${
+                                        idx === activeSlideIndex
+                                          ? 'bg-indigo-600 h-2.5'
+                                          : idx < activeSlideIndex
+                                            ? 'bg-indigo-300'
+                                            : 'bg-slate-200'
+                                      }`}
+                                    />
+                                  ))}
+                                </div>
+                              )}
                               {generatedContent.slides.map((slide: any, idx: number) => (
-                                <div
+                                <motion.div
                                   key={idx}
-                                  className={`p-3 sm:p-4 rounded-xl border transition-all cursor-pointer ${idx === activeSlideIndex ? 'border-indigo-400 bg-indigo-50 shadow-md' : 'border-slate-200 bg-white'}`}
+                                  initial={false}
+                                  animate={idx === activeSlideIndex ? { opacity: 1, x: 0 } : { opacity: 0.4, x: -20 }}
+                                  transition={{ duration: 0.2 }}
+                                  className={`p-4 sm:p-5 rounded-xl border-2 transition-all cursor-pointer ${
+                                    idx === activeSlideIndex
+                                      ? 'border-indigo-500 bg-gradient-to-br from-indigo-50 via-white to-indigo-50/50 shadow-lg shadow-indigo-100'
+                                      : 'border-slate-200 bg-white hover:border-slate-300'
+                                  }`}
                                   onClick={() => setActiveSlideIndex(idx)}
                                 >
-                                  <div className="flex items-center justify-between mb-2 gap-2">
-                                    <h4 className="font-bold text-xs sm:text-sm text-slate-900">Slide {idx + 1}: {slide.title}</h4>
-                                    {idx === activeSlideIndex && <span className="text-[10px] text-indigo-600 font-semibold bg-indigo-100 px-2 py-0.5 rounded-full shrink-0">Active</span>}
+                                  <div className="flex items-center justify-between mb-3 gap-2">
+                                    <div className="flex items-center gap-2.5">
+                                      <span className={`h-8 w-8 rounded-lg flex items-center justify-center text-xs font-bold ${
+                                        idx === activeSlideIndex
+                                          ? 'bg-indigo-600 text-white shadow-md'
+                                          : 'bg-slate-100 text-slate-500'
+                                      }`}>
+                                        {idx + 1}
+                                      </span>
+                                      <h4 className="font-bold text-sm text-slate-900">{slide.title}</h4>
+                                    </div>
+                                    {idx === activeSlideIndex && (
+                                      <span className="text-[10px] text-white font-semibold bg-indigo-600 px-2.5 py-0.5 rounded-full shrink-0 shadow-sm">Viewing</span>
+                                    )}
                                   </div>
-                                  <ul className="list-disc list-inside space-y-1 text-xs text-slate-700">
-                                    {slide.bullets?.map((b: string, bi: number) => <li key={bi}>{b}</li>)}
-                                  </ul>
-                                  {slide.visualCue && (
-                                    <p className="mt-2 text-[11px] text-indigo-600 italic bg-indigo-50/50 p-2 rounded-lg border border-indigo-100">
-                                      <span className="font-semibold">Visual Cue:</span> {slide.visualCue}
-                                    </p>
+                                  {idx === activeSlideIndex && (
+                                    <motion.div
+                                      initial={{ opacity: 0, y: 10 }}
+                                      animate={{ opacity: 1, y: 0 }}
+                                      transition={{ delay: 0.1 }}
+                                    >
+                                      <ul className="space-y-2 mb-3">
+                                        {slide.bullets?.map((b: string, bi: number) => (
+                                          <li key={bi} className="flex items-start gap-2.5 text-xs sm:text-sm text-slate-700">
+                                            <span className="mt-1 h-1.5 w-1.5 rounded-full bg-indigo-500 shrink-0" />
+                                            {b}
+                                          </li>
+                                        ))}
+                                      </ul>
+                                      {slide.visualCue && (
+                                        <div className="mt-3 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-3">
+                                          <div className="flex items-center gap-1.5 mb-1">
+                                            <Lightbulb className="h-3.5 w-3.5 text-amber-600" />
+                                            <span className="text-[10px] font-semibold text-amber-700 uppercase tracking-wider">Board Visual</span>
+                                          </div>
+                                          <p className="text-xs text-amber-800 leading-relaxed">{slide.visualCue}</p>
+                                        </div>
+                                      )}
+                                    </motion.div>
                                   )}
-                                </div>
+                                </motion.div>
                               ))}
                               {generatedContent.slides.length > 1 && (
                                 <div className="flex items-center justify-between pt-2">
                                   <button
                                     onClick={() => setActiveSlideIndex(Math.max(0, activeSlideIndex - 1))}
                                     disabled={activeSlideIndex === 0}
-                                    className="text-xs text-slate-600 bg-white border border-slate-200 px-3 py-1.5 rounded-lg hover:bg-slate-50 disabled:opacity-30"
+                                    className="text-xs font-medium text-slate-600 bg-white border border-slate-200 px-4 py-2 rounded-xl hover:bg-slate-50 hover:border-slate-300 disabled:opacity-30 transition-all flex items-center gap-1.5"
                                   >
-                                    Previous
+                                    <ArrowLeft className="h-3.5 w-3.5" /> Previous
                                   </button>
-                                  <span className="text-xs text-slate-500">{activeSlideIndex + 1} / {generatedContent.slides.length}</span>
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100">
+                                      {activeSlideIndex + 1} / {generatedContent.slides.length}
+                                    </span>
+                                  </div>
                                   <button
                                     onClick={() => setActiveSlideIndex(Math.min(generatedContent.slides.length - 1, activeSlideIndex + 1))}
                                     disabled={activeSlideIndex === generatedContent.slides.length - 1}
-                                    className="text-xs text-slate-600 bg-white border border-slate-200 px-3 py-1.5 rounded-lg hover:bg-slate-50 disabled:opacity-30"
+                                    className="text-xs font-medium text-slate-600 bg-white border border-slate-200 px-4 py-2 rounded-xl hover:bg-slate-50 hover:border-slate-300 disabled:opacity-30 transition-all flex items-center gap-1.5"
                                   >
-                                    Next
+                                    Next <ArrowRight className="h-3.5 w-3.5" />
                                   </button>
                                 </div>
                               )}
                             </div>
                           ) : generatedTool === 'MCQ' && generatedContent.questions ? (
                             <div className="space-y-6">
-                              <div className="text-xs text-slate-500 flex items-center gap-2">
-                                <span className="font-semibold text-slate-700">Score: {quizScore} / {generatedContent.questions.length}</span>
-                                <span className="text-slate-300">|</span>
-                                <button
-                                  onClick={() => { setQuizAnswers({}); setQuizScore(0); }}
-                                  className="text-indigo-600 hover:text-indigo-800 font-medium"
-                                >
-                                  Reset
-                                </button>
-                              </div>
-                              {generatedContent.questions.map((q: any, qi: number) => (
-                                <div key={qi} className="border border-slate-200 rounded-xl p-3 sm:p-4">
-                                  <p className="text-xs sm:text-sm font-semibold text-slate-900 mb-3">
-                                    <span className="text-indigo-600 mr-2">Q{qi + 1}.</span>{q.question}
-                                  </p>
-                                  <div className="space-y-2">
-                                    {q.options.map((opt: string, oi: number) => {
-                                      const answered = quizAnswers[qi] !== undefined;
-                                      const isCorrect = oi === q.answerIndex;
-                                      const isSelected = quizAnswers[qi] === oi;
-                                      let btnClass = 'w-full text-left p-2.5 sm:p-3 rounded-xl text-xs border transition-all ';
-                                      if (!answered) {
-                                        btnClass += 'border-slate-200 bg-white hover:border-indigo-300 hover:bg-indigo-50 text-slate-700';
-                                      } else if (isCorrect) {
-                                        btnClass += 'border-emerald-400 bg-emerald-50 text-emerald-800 font-semibold';
-                                      } else if (isSelected && !isCorrect) {
-                                        btnClass += 'border-red-400 bg-red-50 text-red-800';
-                                      } else {
-                                        btnClass += 'border-slate-200 bg-slate-50 text-slate-500';
-                                      }
-                                      return (
-                                        <button
-                                          key={oi}
-                                          disabled={answered}
-                                          onClick={() => handleAnswerSelect(qi, oi, q.answerIndex)}
-                                          className={btnClass}
-                                        >
-                                          <span className="font-mono mr-2 text-slate-400">{String.fromCharCode(65 + oi)}.</span>
-                                          {opt}
-                                          {answered && isCorrect && <Check className="h-3.5 w-3.5 inline ml-2 text-emerald-600" />}
-                                          {answered && isSelected && !isCorrect && <X className="h-3.5 w-3.5 inline ml-2 text-red-600" />}
-                                        </button>
-                                      );
-                                    })}
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                  <div className="flex items-center gap-1.5 bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 rounded-xl px-3 py-1.5">
+                                    <Award className="h-4 w-4 text-emerald-600" />
+                                    <span className="text-xs font-bold text-emerald-700">{quizScore} / {generatedContent.questions.length}</span>
                                   </div>
-                                  {quizAnswers[qi] !== undefined && (
-                                    <div className="mt-3 p-3 bg-indigo-50 border border-indigo-100 rounded-xl">
-                                      <p className="text-[11px] text-indigo-700 font-semibold mb-1">Explanation:</p>
-                                      <p className="text-[11px] text-indigo-600 leading-relaxed">{q.explanation}</p>
-                                    </div>
-                                  )}
+                                  <span className="text-xs text-slate-400">|</span>
+                                  <button
+                                    onClick={() => { setQuizAnswers({}); setQuizScore(0); }}
+                                    className="text-xs font-medium text-indigo-600 hover:text-indigo-800 bg-indigo-50 border border-indigo-100 px-3 py-1.5 rounded-xl hover:bg-indigo-100 transition-all"
+                                  >
+                                    Reset
+                                  </button>
                                 </div>
-                              ))}
+                                <span className="text-[10px] text-slate-400 font-medium">{generatedContent.questions.filter((_: any, i: number) => quizAnswers[i] !== undefined).length} answered</span>
+                              </div>
+                              {generatedContent.questions.map((q: any, qi: number) => {
+                                const answered = quizAnswers[qi] !== undefined;
+                                const isCorrectAnswered = answered && quizAnswers[qi] === q.answerIndex;
+                                return (
+                                  <motion.div
+                                    key={qi}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: qi * 0.05 }}
+                                    className={`rounded-xl border-2 p-4 sm:p-5 transition-all ${
+                                      answered
+                                        ? isCorrectAnswered
+                                          ? 'border-emerald-300 bg-gradient-to-br from-emerald-50/50 to-white'
+                                          : 'border-red-300 bg-gradient-to-br from-red-50/50 to-white'
+                                        : 'border-slate-200 bg-white hover:border-indigo-200'
+                                    }`}
+                                  >
+                                    <div className="flex items-start gap-3 mb-3">
+                                      <span className={`h-7 w-7 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 mt-0.5 ${
+                                        answered
+                                          ? isCorrectAnswered
+                                            ? 'bg-emerald-600 text-white'
+                                            : 'bg-red-600 text-white'
+                                          : 'bg-indigo-100 text-indigo-700'
+                                      }`}>
+                                        {qi + 1}
+                                      </span>
+                                      <p className="text-xs sm:text-sm font-semibold text-slate-900 leading-relaxed">{q.question}</p>
+                                    </div>
+                                    <div className="space-y-2 ml-2">
+                                      {q.options.map((opt: string, oi: number) => {
+                                        const isCorrect = oi === q.answerIndex;
+                                        const isSelected = quizAnswers[qi] === oi;
+                                        let btnClass = 'w-full text-left p-3 rounded-xl text-xs border-2 transition-all flex items-center gap-3 ';
+                                        if (!answered) {
+                                          btnClass += 'border-slate-200 bg-white hover:border-indigo-300 hover:bg-indigo-50/50 text-slate-700 hover:shadow-sm';
+                                        } else if (isCorrect) {
+                                          btnClass += 'border-emerald-400 bg-emerald-50 text-emerald-800 font-semibold shadow-sm';
+                                        } else if (isSelected && !isCorrect) {
+                                          btnClass += 'border-red-400 bg-red-50 text-red-800';
+                                        } else {
+                                          btnClass += 'border-slate-200 bg-slate-50 text-slate-400';
+                                        }
+                                        return (
+                                          <button key={oi} disabled={answered} onClick={() => handleAnswerSelect(qi, oi, q.answerIndex)} className={btnClass}>
+                                            <span className={`h-6 w-6 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 ${
+                                              !answered
+                                                ? 'bg-slate-100 text-slate-500'
+                                                : isCorrect
+                                                  ? 'bg-emerald-600 text-white'
+                                                  : isSelected
+                                                    ? 'bg-red-600 text-white'
+                                                    : 'bg-slate-200 text-slate-400'
+                                            }`}>
+                                              {String.fromCharCode(65 + oi)}
+                                            </span>
+                                            <span className="flex-1">{opt}</span>
+                                            {answered && isCorrect && <Check className="h-4 w-4 text-emerald-600 shrink-0" />}
+                                            {answered && isSelected && !isCorrect && <X className="h-4 w-4 text-red-600 shrink-0" />}
+                                          </button>
+                                        );
+                                      })}
+                                    </div>
+                                    {quizAnswers[qi] !== undefined && (
+                                      <motion.div
+                                        initial={{ opacity: 0, height: 0 }}
+                                        animate={{ opacity: 1, height: 'auto' }}
+                                        className="mt-4 p-4 bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-100 rounded-xl"
+                                      >
+                                        <div className="flex items-center gap-1.5 mb-1.5">
+                                          <Lightbulb className="h-3.5 w-3.5 text-indigo-600" />
+                                          <span className="text-[10px] font-bold text-indigo-700 uppercase tracking-wider">Explanation</span>
+                                        </div>
+                                        <p className="text-xs text-indigo-700 leading-relaxed">{q.explanation}</p>
+                                      </motion.div>
+                                    )}
+                                  </motion.div>
+                                );
+                              })}
                             </div>
                           ) : generatedTool === 'Vocabulary' && generatedContent.vocabulary ? (
                             <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
                               {generatedContent.vocabulary.map((v: any, vi: number) => (
-                                <div key={vi} className="border border-slate-200 rounded-xl p-4 bg-white hover:border-indigo-200 transition-colors">
-                                  <h4 className="font-bold text-sm text-indigo-700 mb-1">{v.word}</h4>
-                                  <p className="text-xs text-slate-600 mb-2">{v.meaning}</p>
-                                  <p className="text-[11px] text-slate-400 italic bg-slate-50 p-2 rounded-lg border border-slate-100">
-                                    "{v.example}"
-                                  </p>
-                                </div>
+                                <motion.div
+                                  key={vi}
+                                  initial={{ opacity: 0, y: 15 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  transition={{ delay: vi * 0.08 }}
+                                  className="group border border-slate-200 rounded-xl overflow-hidden bg-white hover:shadow-lg hover:shadow-indigo-100 hover:border-indigo-200 transition-all"
+                                >
+                                  <div className="bg-gradient-to-r from-indigo-600 to-indigo-500 px-4 py-2.5">
+                                    <div className="flex items-center justify-between">
+                                      <h4 className="font-bold text-sm text-white">{v.word}</h4>
+                                      <button onClick={() => speakWord(v.word)} className="p-1.5 bg-white/20 rounded-lg hover:bg-white/30 transition-colors text-white" title="Pronounce">
+                                        <Volume2 className="h-3.5 w-3.5" />
+                                      </button>
+                                    </div>
+                                  </div>
+                                  <div className="p-4 space-y-3">
+                                    <p className="text-xs text-slate-600 leading-relaxed">{v.meaning}</p>
+                                    <div className="bg-gradient-to-r from-slate-50 to-indigo-50/30 border border-slate-100 rounded-xl p-3">
+                                      <span className="text-[10px] font-semibold text-indigo-500 uppercase tracking-wider block mb-1">Example</span>
+                                      <p className="text-xs text-slate-700 italic leading-relaxed">"{v.example}"</p>
+                                    </div>
+                                  </div>
+                                </motion.div>
                               ))}
                             </div>
                           ) : generatedTool === 'Flashcard' && generatedContent.cards ? (
-                            <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
+                            <div className="grid gap-4 sm:gap-5 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
                               {generatedContent.cards.map((card: any, ci: number) => {
                                 const isFlipped = flippedCards[ci] || false;
                                 return (
-                                  <div
+                                  <motion.div
                                     key={ci}
+                                    initial={{ opacity: 0, y: 15 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: ci * 0.08 }}
                                     onClick={() => toggleCardFlip(ci)}
-                                    className="cursor-pointer perspective-1000"
-                                    style={{ perspective: '1000px' }}
+                                    className="cursor-pointer group"
+                                    style={{ perspective: '800px' }}
                                   >
-                                    <div
-                                      className={`relative min-h-[160px] transition-all duration-500 rounded-xl border ${
-                                        isFlipped ? 'bg-indigo-50 border-indigo-300' : 'bg-white border-slate-200'
-                                      }`}
+                                    <motion.div
+                                      animate={{ rotateY: isFlipped ? 180 : 0 }}
+                                      transition={{ duration: 0.5, type: 'spring', stiffness: 120 }}
+                                      className="relative min-h-[200px]"
+                                      style={{ transformStyle: 'preserve-3d' }}
                                     >
-                                      <div className="p-4">
-                                        {isFlipped ? (
-                                          <div>
-                                            <div className="text-[10px] text-indigo-500 font-semibold uppercase tracking-wider mb-2">Answer</div>
-                                            <p className="text-xs text-slate-700 leading-relaxed">{card.back}</p>
-                                          </div>
-                                        ) : (
-                                          <div>
-                                            <div className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mb-2">Question</div>
-                                            <p className="text-sm font-semibold text-slate-900">{card.front}</p>
-                                          </div>
-                                        )}
+                                      {/* Front face */}
+                                      <div className={`absolute inset-0 backface-hidden rounded-xl border-2 p-5 flex flex-col ${
+                                        isFlipped ? 'invisible' : 'visible'
+                                      } bg-white border-slate-200 group-hover:border-indigo-300 group-hover:shadow-lg transition-all`}
+                                        style={{ backfaceVisibility: 'hidden' }}>
+                                        <div className="flex items-center gap-1.5 mb-3">
+                                          <div className="h-2 w-2 rounded-full bg-indigo-500" />
+                                          <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider">Question</span>
+                                        </div>
+                                        <div className="flex-1 flex items-center">
+                                          <p className="text-sm font-semibold text-slate-900 leading-relaxed">{card.front}</p>
+                                        </div>
+                                        <div className="mt-3 text-center">
+                                          <span className="text-[10px] text-slate-400 bg-slate-50 border border-slate-200 px-3 py-1 rounded-full group-hover:bg-indigo-50 group-hover:border-indigo-200 group-hover:text-indigo-500 transition-all">
+                                            Tap to reveal answer
+                                          </span>
+                                        </div>
                                       </div>
-                                      <div className="absolute bottom-2 right-2 text-[10px] text-slate-400">
-                                        {isFlipped ? 'Click to flip back' : 'Click to reveal'}
+                                      {/* Back face */}
+                                      <div className={`absolute inset-0 backface-hidden rounded-xl border-2 p-5 flex flex-col ${
+                                        isFlipped ? 'visible' : 'invisible'
+                                      } bg-gradient-to-br from-indigo-600 to-indigo-700 border-indigo-500 shadow-lg shadow-indigo-200`}
+                                        style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}>
+                                        <div className="flex items-center gap-1.5 mb-3">
+                                          <div className="h-2 w-2 rounded-full bg-white/80" />
+                                          <span className="text-[10px] font-bold text-white/80 uppercase tracking-wider">Answer</span>
+                                        </div>
+                                        <div className="flex-1 flex items-center">
+                                          <p className="text-xs text-white leading-relaxed font-medium">{card.back}</p>
+                                        </div>
+                                        <div className="mt-3 text-center">
+                                          <span className="text-[10px] text-white/60 bg-white/10 px-3 py-1 rounded-full border border-white/20">
+                                            Tap to flip back
+                                          </span>
+                                        </div>
                                       </div>
-                                    </div>
-                                  </div>
+                                    </motion.div>
+                                  </motion.div>
                                 );
                               })}
                             </div>
                           ) : generatedTool === 'Videos' && generatedContent.scenes ? (
                             <div>
-                              <div className="mb-6">
-                                <h4 className="text-lg font-bold text-slate-900 mb-2">{generatedContent.title}</h4>
+                              {/* Video header */}
+                              <div className="mb-6 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl p-4 sm:p-5 text-white">
+                                <h4 className="text-base sm:text-lg font-bold mb-2">{generatedContent.title}</h4>
                                 {generatedContent.learningObjectives && (
-                                  <div className="mb-4">
-                                    <p className="text-xs font-semibold text-slate-600 mb-2 uppercase tracking-wider">Learning Objectives</p>
-                                    <ul className="space-y-1">
+                                  <div>
+                                    <div className="flex items-center gap-1.5 mb-2">
+                                      <Target className="h-3.5 w-3.5 text-indigo-200" />
+                                      <span className="text-[10px] font-bold text-indigo-200 uppercase tracking-wider">Learning Objectives</span>
+                                    </div>
+                                    <ul className="space-y-1.5">
                                       {generatedContent.learningObjectives.map((obj: string, oi: number) => (
-                                        <li key={oi} className="flex items-start gap-2 text-xs text-slate-700">
-                                          <span className="mt-0.5 h-1.5 w-1.5 rounded-full bg-indigo-500 shrink-0" />
+                                        <li key={oi} className="flex items-start gap-2 text-xs text-white/90">
+                                          <span className="mt-1 h-1.5 w-1.5 rounded-full bg-white/40 shrink-0" />
                                           {obj}
                                         </li>
                                       ))}
@@ -2098,58 +2262,80 @@ service cloud.firestore {
                                   </div>
                                 )}
                               </div>
-                              <div className="space-y-4 mb-6">
+                              {/* Scene timeline */}
+                              <div className="relative mb-6">
+                                <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gradient-to-b from-indigo-200 to-purple-200 rounded-full" />
                                 {generatedContent.scenes.map((scene: any, si: number) => (
-                                  <div key={si} className="border border-slate-200 rounded-xl overflow-hidden">
-                                    <div className="bg-indigo-50 px-4 py-2.5 border-b border-indigo-100 flex items-center justify-between">
-                                      <div className="flex items-center gap-2">
-                                        <span className="text-xs font-bold text-indigo-700 bg-white px-2 py-0.5 rounded-md border border-indigo-200">
-                                          Scene {scene.sceneNumber || si + 1}
-                                        </span>
-                                        <span className="text-xs font-semibold text-slate-700">{scene.sectionTitle || generatedContent.title}</span>
+                                  <motion.div
+                                    key={si}
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: si * 0.08 }}
+                                    className="relative pl-10 pb-5 last:pb-0"
+                                  >
+                                    <div className="absolute left-2.5 top-1 h-3 w-3 rounded-full border-2 border-indigo-500 bg-white z-10" />
+                                    <div className="border border-slate-200 rounded-xl overflow-hidden bg-white hover:shadow-md hover:border-indigo-200 transition-all">
+                                      <div className="bg-gradient-to-r from-indigo-50 to-purple-50 px-4 py-2.5 border-b border-slate-200 flex items-center justify-between flex-wrap gap-2">
+                                        <div className="flex items-center gap-2">
+                                          <span className="text-xs font-bold text-white bg-indigo-600 px-2.5 py-0.5 rounded-md shadow-sm">
+                                            Scene {scene.sceneNumber || si + 1}
+                                          </span>
+                                          <span className="text-xs font-semibold text-slate-700">{scene.sectionTitle || ''}</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                          {scene.duration && (
+                                            <span className="text-[10px] text-indigo-600 font-mono bg-white px-2 py-0.5 rounded-md border border-indigo-200 flex items-center gap-1">
+                                              <Play className="h-3 w-3" /> {scene.duration}
+                                            </span>
+                                          )}
+                                          {scene.pageRef && (
+                                            <span className="text-[10px] text-amber-700 font-mono bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
+                                              {scene.pageRef}
+                                            </span>
+                                          )}
+                                        </div>
                                       </div>
-                                      <div className="flex items-center gap-3">
-                                        {scene.duration && (
-                                          <span className="text-[10px] text-indigo-600 font-mono bg-white px-2 py-0.5 rounded-md border border-indigo-200">
-                                            {scene.duration}
-                                          </span>
+                                      <div className="p-4 space-y-3">
+                                        {scene.visualDescription && (
+                                          <div className="bg-gradient-to-r from-slate-50 to-indigo-50/30 border border-slate-200 rounded-xl p-3">
+                                            <div className="flex items-center gap-1.5 mb-1.5">
+                                              <Tv className="h-3.5 w-3.5 text-slate-500" />
+                                              <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Visual</span>
+                                            </div>
+                                            <p className="text-xs text-slate-700 leading-relaxed">{scene.visualDescription}</p>
+                                          </div>
                                         )}
-                                        {scene.pageRef && (
-                                          <span className="text-[10px] text-amber-700 font-mono bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
-                                            {scene.pageRef}
-                                          </span>
+                                        {scene.narration && (
+                                          <div className="bg-white border border-slate-200 rounded-xl p-3">
+                                            <div className="flex items-center gap-1.5 mb-1.5">
+                                              <Volume2 className="h-3.5 w-3.5 text-indigo-500" />
+                                              <span className="text-[10px] font-semibold text-indigo-500 uppercase tracking-wider">Narration</span>
+                                            </div>
+                                            <p className="text-xs text-slate-700 leading-relaxed">{scene.narration}</p>
+                                          </div>
                                         )}
                                       </div>
                                     </div>
-                                    <div className="p-4 space-y-3">
-                                      {scene.visualDescription && (
-                                        <div className="bg-slate-50 border border-slate-200 rounded-lg p-3">
-                                          <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1">Visual</p>
-                                          <p className="text-xs text-slate-700">{scene.visualDescription}</p>
-                                        </div>
-                                      )}
-                                      {scene.narration && (
-                                        <div className="bg-white border border-slate-200 rounded-lg p-3">
-                                          <p className="text-[10px] font-semibold text-indigo-500 uppercase tracking-wider mb-1">Narration</p>
-                                          <p className="text-xs text-slate-700 leading-relaxed">{scene.narration}</p>
-                                        </div>
-                                      )}
-                                    </div>
-                                  </div>
+                                  </motion.div>
                                 ))}
                               </div>
+                              {/* Video summary */}
                               <div className="border-t border-slate-200 pt-4 space-y-4">
                                 {generatedContent.totalDuration && (
-                                  <p className="text-xs text-slate-500">
+                                  <div className="flex items-center gap-2 text-xs text-slate-600 bg-slate-50 border border-slate-200 rounded-xl p-3">
+                                    <Play className="h-4 w-4 text-indigo-600" />
                                     <span className="font-semibold text-slate-700">Total Duration:</span> {generatedContent.totalDuration}
-                                  </p>
+                                  </div>
                                 )}
                                 {generatedContent.materialsNeeded && generatedContent.materialsNeeded.length > 0 && (
                                   <div>
-                                    <p className="text-xs font-semibold text-slate-600 mb-2">Materials Needed</p>
+                                    <p className="text-xs font-semibold text-slate-700 mb-2 flex items-center gap-1.5">
+                                      <Layers className="h-3.5 w-3.5 text-indigo-600" />
+                                      Materials Needed
+                                    </p>
                                     <div className="flex flex-wrap gap-2">
                                       {generatedContent.materialsNeeded.map((m: string, mi: number) => (
-                                        <span key={mi} className="text-[10px] bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full border border-slate-200">
+                                        <span key={mi} className="text-[10px] bg-gradient-to-r from-slate-50 to-indigo-50/30 text-slate-700 px-3 py-1.5 rounded-full border border-slate-200 font-medium">
                                           {m}
                                         </span>
                                       ))}
@@ -2158,11 +2344,14 @@ service cloud.firestore {
                                 )}
                                 {generatedContent.assessmentQuestions && generatedContent.assessmentQuestions.length > 0 && (
                                   <div>
-                                    <p className="text-xs font-semibold text-slate-600 mb-2">Check-for-Understanding Questions</p>
+                                    <p className="text-xs font-semibold text-slate-700 mb-2 flex items-center gap-1.5">
+                                      <HelpCircle className="h-3.5 w-3.5 text-amber-600" />
+                                      Check-for-Understanding Questions
+                                    </p>
                                     <ul className="space-y-2">
                                       {generatedContent.assessmentQuestions.map((q: string, qi: number) => (
-                                        <li key={qi} className="flex items-start gap-2 text-xs text-slate-700 bg-amber-50 border border-amber-200 rounded-lg p-3">
-                                          <span className="font-bold text-amber-700 shrink-0">Q{qi + 1}.</span>
+                                        <li key={qi} className="flex items-start gap-2 text-xs text-slate-700 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-3 shadow-sm">
+                                          <span className="font-bold text-amber-700 bg-white h-5 w-5 rounded-lg flex items-center justify-center text-[10px] border border-amber-200 shrink-0 mt-0.5">Q{qi + 1}</span>
                                           {q}
                                         </li>
                                       ))}
@@ -2172,52 +2361,96 @@ service cloud.firestore {
                               </div>
                             </div>
                           ) : generatedTool === 'Mind Map' && generatedContent.root ? (
-                            <div className="p-4">
-                              <div className="text-center mb-6">
-                                <h4 className="text-lg font-bold text-indigo-700">{generatedContent.root.name}</h4>
-                              </div>
-                              <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
+                            <div className="p-2">
+                              {/* Root node */}
+                              <motion.div
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                className="text-center mb-8"
+                              >
+                                <div className="inline-block bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold text-base px-6 py-3 rounded-2xl shadow-lg shadow-indigo-200 border border-indigo-500">
+                                  {generatedContent.root.name}
+                                </div>
+                              </motion.div>
+                              {/* Child nodes */}
+                              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
                                 {generatedContent.root.children?.map((child: any, ci: number) => (
-                                  <div key={ci} className="border border-slate-200 rounded-xl p-4 bg-slate-50">
-                                    <h5 className="font-bold text-sm text-slate-900 mb-1">{child.name}</h5>
-                                    {child.description && <p className="text-xs text-slate-500 mb-2">{child.description}</p>}
-                                    {child.children && (
-                                      <ul className="list-disc list-inside space-y-1">
-                                        {child.children.map((leaf: any, li: number) => (
-                                          <li key={li} className="text-xs text-slate-700">{leaf.name}</li>
-                                        ))}
-                                      </ul>
-                                    )}
-                                  </div>
+                                  <motion.div
+                                    key={ci}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: ci * 0.1 + 0.2 }}
+                                    className="border border-slate-200 rounded-xl overflow-hidden bg-white hover:shadow-lg hover:border-indigo-200 transition-all"
+                                  >
+                                    <div className="bg-gradient-to-r from-indigo-500 to-indigo-600 px-4 py-2.5">
+                                      <h5 className="font-bold text-sm text-white">{child.name}</h5>
+                                    </div>
+                                    <div className="p-4">
+                                      {child.description && (
+                                        <p className="text-xs text-slate-600 mb-3 leading-relaxed">{child.description}</p>
+                                      )}
+                                      {child.children && (
+                                        <div className="space-y-1.5">
+                                          {child.children.map((leaf: any, li: number) => (
+                                            <div key={li} className="flex items-center gap-2 p-2 bg-slate-50 border border-slate-100 rounded-lg text-xs text-slate-700 hover:bg-indigo-50 hover:border-indigo-100 transition-all">
+                                              <span className="h-1.5 w-1.5 rounded-full bg-indigo-400 shrink-0" />
+                                              {leaf.name}
+                                            </div>
+                                          ))}
+                                        </div>
+                                      )}
+                                    </div>
+                                  </motion.div>
                                 ))}
                               </div>
                             </div>
                           ) : (
-                            <div>
+                            <div className="space-y-4">
                               {generatedContent.title && (
-                                <h4 className="text-base font-bold text-slate-900 mb-4">{generatedContent.title}</h4>
+                                <motion.div
+                                  initial={{ opacity: 0, y: -10 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl px-4 py-3"
+                                >
+                                  <h4 className="text-sm font-bold text-white">{generatedContent.title}</h4>
+                                </motion.div>
                               )}
                               {generatedContent.items && (
-                                <ul className="space-y-3 mb-4">
+                                <div className="space-y-2">
                                   {generatedContent.items.map((item: string, ii: number) => (
-                                    <li key={ii} className="flex items-start gap-3 text-xs text-slate-700">
-                                      <span className="mt-0.5 h-2 w-2 rounded-full bg-indigo-400 shrink-0" />
-                                      {item}
-                                    </li>
+                                    <motion.div
+                                      key={ii}
+                                      initial={{ opacity: 0, x: -10 }}
+                                      animate={{ opacity: 1, x: 0 }}
+                                      transition={{ delay: ii * 0.05 }}
+                                      className="flex items-start gap-3 p-3 bg-white border border-slate-200 rounded-xl hover:border-indigo-200 hover:shadow-sm transition-all"
+                                    >
+                                      <span className="mt-0.5 h-6 w-6 rounded-lg bg-gradient-to-br from-indigo-500 to-indigo-600 text-white flex items-center justify-center text-[10px] font-bold shrink-0">
+                                        {ii + 1}
+                                      </span>
+                                      <span className="text-xs text-slate-700 leading-relaxed pt-0.5">{item}</span>
+                                    </motion.div>
                                   ))}
-                                </ul>
+                                </div>
                               )}
                               {generatedContent.notesForTeachers && (
-                                <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-xl">
-                                  <p className="text-[11px] font-semibold text-amber-800 mb-1">Notes for Teachers:</p>
-                                  <p className="text-xs text-amber-700">{generatedContent.notesForTeachers}</p>
-                                </div>
+                                <motion.div
+                                  initial={{ opacity: 0, y: 10 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-4"
+                                >
+                                  <div className="flex items-center gap-1.5 mb-1.5">
+                                    <Lightbulb className="h-3.5 w-3.5 text-amber-600" />
+                                    <span className="text-[10px] font-bold text-amber-700 uppercase tracking-wider">Teacher's Note</span>
+                                  </div>
+                                  <p className="text-xs text-amber-800 leading-relaxed">{generatedContent.notesForTeachers}</p>
+                                </motion.div>
                               )}
                             </div>
                           )}
                         </div>
                       </div>
-                    </div>
+                    </motion.div>
                   )}
 
                   {!textbookSelectedSubject && !generatedContent && (
