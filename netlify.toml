@@ -1,0 +1,11 @@
+[build]
+  command = "git lfs pull && npm run build"
+  publish = "dist"
+
+[build.environment]
+  GIT_LFS_ENABLED = "true"
+
+[[redirects]]
+  from = "/textbooks/*"
+  to = "/textbooks/:splat"
+  status = 200
