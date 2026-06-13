@@ -360,155 +360,140 @@ export default function App() {
       });
 
       if (!res.ok) {
-        throw new Error('AI Server is warming up or key is missing. Reverting to smart demo generation.');
+        const errBody = await res.text().catch(() => '');
+        console.error(`API error ${res.status}: ${errBody}`);
+        throw new Error(`Server returned ${res.status}`);
       }
 
       const data = await res.json();
       setGeneratedContent(data);
     } catch (e) {
-      console.warn(e);
-      // Fallback local smart content generator in case API key isn't provided or server errors
+      console.error('API generation failed, using local fallback:', e);
       generateLocalFallback(activeGenerationTool, selectedTopic);
     } finally {
       setIsAiLoading(false);
     }
   };
 
-  // Rich offline local content simulation for perfect UX when API Key is pending
+  // Smart offline fallback that generates content from the actual chapter text
   const generateLocalFallback = (tool: ContentTool, topic: Topic) => {
     setTimeout(() => {
+      const content = topic.defaultContent || topic.title;
+      // Extract meaningful sentences from the content
+      const sentences = content
+        .split(/[.।!?]\s*/)
+        .map(s => s.trim())
+        .filter(s => s.length > 15 && s.length < 200);
+
+      const slideTitles = [
+        `Introduction to ${topic.title}`,
+        `${topic.title} — Key Concepts`,
+        `Understanding ${topic.title}`,
+        `Application of ${topic.title}`,
+        `${topic.title} in Context`,
+        `Summary of ${topic.title}`
+      ];
+
       let mockData: any = null;
       if (tool === 'MCQ') {
+        const usedQ = sentences.slice(0, Math.min(5, Math.max(3, Math.floor(sentences.length / 3))));
         mockData = {
-          questions: [
-            {
-              question: `What is the key essence of "${topic.title}"?`,
-              options: [
-                "It represents the biological advancement only",
-                "It is a complex social evolution and structured organization",
-                "It occurred suddenly in a single day",
-                "None of the above"
-              ],
-              answerIndex: 1,
-              explanation: "Human society evolved gradually through security, cooperation, and structural rules over millennia."
-            },
-            {
-              question: "Which of the following stages comes first in human societal evolution?",
-              options: [
-                "Industrial Era (औद्योगिक युग)",
-                "Agricultural Era (कृषि युग)",
-                "Hunting & Gathering Era (शिकार र संकलन युग)",
-                "Pastoral Era (पशुपालन युग)"
-              ],
-              answerIndex: 2,
-              explanation: "In primitive ancient times, humans lived in caves, gathered forest products, and hunted wild beasts."
-            },
-            {
-              question: "Who coordinates development projects across local municipalities inside a district of Nepal?",
-              options: [
-                "The Supreme Court",
-                "The District Coordination Committee (जिल्ला समन्वय समिति)",
-                "Global Non-Governmental Agencies",
-                "Private Business Hubs"
-              ],
-              answerIndex: 1,
-              explanation: "Under Article 220 of the Nepal Constitution, the DCC coordinates and monitors municipal development programs."
-            }
-          ]
+          questions: usedQ.map((s, i) => ({
+            question: `Based on "${topic.title}", what does "${s.substring(0, 40)}..." relate to?`,
+            options: [
+              `Core theme of ${topic.title}`,
+              `Secondary supporting concept`,
+              `Unrelated external topic`,
+              `None of the above`
+            ],
+            answerIndex: 0,
+            explanation: `"${topic.title}" covers: ${s.substring(0, 100)}`
+          }))
         };
       } else if (tool === 'Slides') {
+        const numSlides = Math.min(slideTitles.length, Math.max(3, Math.ceil(sentences.length / 4)));
         mockData = {
-          slides: [
-            {
-              title: `Introduction to ${topic.title}`,
-              bullets: [
-                "Overview of key parameters and structures.",
-                "Why this topic holds immense importance in modern education.",
-                "Understanding history vs modern computational advancements."
-              ],
-              visualCue: "Sketch a timeline showing primitive icons on the far left, transitioning to standard gear of the industrial age, and a mobile gadget on the right."
-            },
-            {
-              title: "Critical Pillars",
-              bullets: [
-                "Cooperative learning environments & peer synergy.",
-                "Active social responsibility and civic consciousness.",
-                "Interactive evaluation tools to track retention statistics."
-              ],
-              visualCue: "Draw a simple triangle labeled with Pillars (Knowledge, Action, Ethos) at three points connected by glowing arrows."
-            }
-          ]
+          slides: slideTitles.slice(0, numSlides).map((title, i) => {
+            const startIdx = i * Math.floor(sentences.length / numSlides);
+            const slideBullets = sentences.slice(startIdx, startIdx + 3);
+            return {
+              title,
+              bullets: slideBullets.length > 0
+                ? slideBullets.map(s => s.length > 80 ? s.substring(0, 77) + '...' : s)
+                : [`Exploring key aspects of ${topic.title}`, `Relevant examples and applications`, `Building conceptual understanding`],
+              visualCue: i === 0
+                ? `Draw a central diagram showing the main elements of ${topic.title} with labeled parts`
+                : i === numSlides - 1
+                  ? `Create a summary mind map connecting all key points covered in the lesson`
+                  : `Illustrate the concept with a flow chart or labeled diagram showing relationships`
+            };
+          })
         };
       } else if (tool === 'Vocabulary') {
+        const words = topic.title.split(/[\s,]+/).filter(w => w.length > 3);
+        const vocabWords = words.length >= 3 ? words : ['Concept', 'Principle', 'Application', 'Analysis', 'Synthesis'];
         mockData = {
-          vocabulary: [
-            {
-              word: "उत्पत्ति (Origin)",
-              meaning: "The point or place where something begins or is created.",
-              example: "समाजको उत्पत्ति मानिसको सुरक्षा र सहकार्यको खोजीबाट भएको हो।"
-            },
-            {
-              word: "पूर्वाधार (Infrastructure)",
-              meaning: "The basic physical and organizational structures needed for the operation of a society.",
-              example: "शिक्षा र स्वास्थ्य विकासका मुख्य पूर्वाधार हुन्।"
-            },
-            {
-              word: "समन्वय (Coordination)",
-              meaning: "The organization of the different elements of a complex body or activity so as to enable them to work together effectively.",
-              example: "जिल्ला समन्वय समितिले गाउँपालिका र नगरपालिकाबीच समन्वय गर्छ।"
-            }
-          ]
+          vocabulary: vocabWords.slice(0, 5).map(w => ({
+            word: w,
+            meaning: `The term "${w}" as used in the context of ${topic.title} refers to its core educational significance`,
+            example: `Students studying "${topic.title}" should understand how "${w}" applies to real-world situations`
+          }))
         };
       } else if (tool === 'Flashcard') {
-        mockData = {
-          cards: [
-            {
-              front: "What are the primary mediums of Socialization (सामाजिकीकरण)?",
-              back: "Primary: Family and parents. Secondary: Friends, school, neighborhood, media, religious institutions."
-            },
-            {
-              front: "Why is Education (शिक्षा) called the 'infrastructure of infrastructures'?",
-              back: "Because it produces skilled humans, professionals (doctors, teachers, engineers) who enable all other sectors to build and function properly."
-            },
-            {
-              front: "Class 7 Social Topic: What is DCC's composition in Nepal?",
-              back: "It consists of a Chief, a Deputy Chief, at least three women, and at least one Dalit or minority, up to 9 members."
-            }
-          ]
-        };
+        const qa = sentences.slice(0, Math.min(4, sentences.length)).map(s => ({
+          front: `What is the main idea related to "${s.substring(0, 50)}..."?`,
+          back: `${s.substring(0, 150)}`
+        }));
+        if (qa.length < 3) {
+          qa.push(
+            { front: `What are the key takeaways from "${topic.title}"?`, back: `This chapter covers fundamental concepts related to ${topic.title} that help build foundational knowledge.` },
+            { front: `How does "${topic.title}" relate to real-world scenarios?`, back: `The concepts in this chapter can be applied to understand and analyze real-world situations in the Nepali educational context.` }
+          );
+        }
+        mockData = { cards: qa };
       } else if (tool === 'Mind Map') {
         mockData = {
           root: {
             name: topic.title,
             children: [
               {
-                name: "Core Philosophy",
-                description: "Basic values and logical framework",
+                name: "Core Concepts",
+                description: `Fundamental ideas of ${topic.title}`,
                 children: [
-                  { name: "Historical context" },
-                  { name: "Evolutionary steps" }
+                  { name: sentences[0]?.substring(0, 40) || 'Main concept' },
+                  { name: sentences[1]?.substring(0, 40) || 'Supporting idea' },
+                  { name: sentences[2]?.substring(0, 40) || 'Key principle' }
                 ]
               },
               {
-                name: "Practical Implementation",
-                description: "Real-world utility and smart board guides",
+                name: "Applications",
+                description: `Real-world relevance of ${topic.title}`,
                 children: [
                   { name: "Classroom activities" },
-                  { name: "Self assessment" }
+                  { name: "Practical examples" },
+                  { name: "Assessment methods" }
+                ]
+              },
+              {
+                name: "Key Takeaways",
+                description: `What students should remember`,
+                children: [
+                  { name: "Core principles" },
+                  { name: "Important terms" },
+                  { name: "Connection to curriculum" }
                 ]
               }
             ]
           }
         };
       } else {
+        const items = sentences.slice(0, Math.min(6, Math.max(3, Math.ceil(sentences.length / 2))));
         mockData = {
-          title: `Smart Synthesis of ${topic.title}`,
-          items: [
-            "Active observation of historical, structural, and political transitions in society.",
-            "Recognizing how rules, values, and civic duties safeguard human rights.",
-            "Interactive analysis utilizing high-quality educational boards and digital aids."
-          ],
-          notesForTeachers: "Encourage active inquiry-based learning. Have students draw diagrams representing these coordinates."
+          title: `Key Points: ${topic.title}`,
+          items: items.length > 0
+            ? items.map(s => s.length > 100 ? s.substring(0, 97) + '...' : s)
+            : [`Understanding the fundamental concepts of ${topic.title}`, `Analyzing key themes and their interconnections`, `Applying knowledge to practical situations in the Nepali context`],
+          notesForTeachers: `Guide students through the key concepts of "${topic.title}" using interactive discussions and real-world examples relevant to the Nepali curriculum. Encourage group activities to reinforce understanding.`
         };
       }
       setGeneratedContent(mockData);
