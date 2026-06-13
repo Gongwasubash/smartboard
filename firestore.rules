@@ -1,0 +1,106 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // 1. Global safety catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Common Global Helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Entity Validation Blueprints
+    function isValidClass(data) {
+      return data.keys().hasAll(['id', 'name'])
+        && data.keys().size() >= 2
+        && data.id is string && isValidId(data.id)
+        && data.name is string && data.name.size() > 0 && data.name.size() <= 100;
+    }
+
+    function isValidSubject(data) {
+      return data.keys().hasAll(['id', 'classId', 'title', 'iconName'])
+        && data.id is string && isValidId(data.id)
+        && data.classId is string && isValidId(data.classId)
+        && data.title is string && data.title.size() > 0 && data.title.size() <= 200
+        && data.iconName is string && data.iconName.size() > 0 && data.iconName.size() <= 100
+        && (!('titleNepali' in data) || data.titleNepali == null || (data.titleNepali is string && data.titleNepali.size() <= 200));
+    }
+
+    function isValidChapter(data) {
+      return data.keys().hasAll(['id', 'subjectId', 'title'])
+        && data.id is string && isValidId(data.id)
+        && data.subjectId is string && isValidId(data.subjectId)
+        && data.title is string && data.title.size() > 0 && data.title.size() <= 200
+        && (!('titleNepali' in data) || data.titleNepali == null || (data.titleNepali is string && data.titleNepali.size() <= 200));
+    }
+
+    function isValidTopic(data) {
+      return data.keys().hasAll(['id', 'chapterId', 'title', 'defaultContent'])
+        && data.id is string && isValidId(data.id)
+        && data.chapterId is string && isValidId(data.chapterId)
+        && data.title is string && data.title.size() > 0 && data.title.size() <= 200
+        && data.defaultContent is string && data.defaultContent.size() <= 50000
+        && (!('titleNepali' in data) || data.titleNepali == null || (data.titleNepali is string && data.titleNepali.size() <= 200));
+    }
+
+    function isValidVideo(data) {
+      return data.keys().hasAll(['id', 'chapterId', 'title', 'videoUrl'])
+        && data.id is string && isValidId(data.id)
+        && data.chapterId is string && isValidId(data.chapterId)
+        && data.title is string && data.title.size() > 0 && data.title.size() <= 200
+        && data.videoUrl is string && data.videoUrl.size() > 0 && data.videoUrl.size() <= 1000;
+    }
+
+    // --- Core Collections ---
+    
+    match /classes/{classId} {
+      allow read: if true;
+      allow create: if isSignedIn() && isValidId(classId) && isValidClass(request.resource.data);
+      allow update: if isSignedIn() && isValidId(classId) && isValidClass(request.resource.data);
+      allow delete: if isSignedIn() && isValidId(classId);
+    }
+
+    match /subjects/{subjectId} {
+      allow read: if true;
+      allow create: if isSignedIn() && isValidId(subjectId) && isValidSubject(request.resource.data)
+                    && exists(/databases/$(database)/documents/classes/$(request.resource.data.classId));
+      allow update: if isSignedIn() && isValidId(subjectId) && isValidSubject(request.resource.data)
+                    && request.resource.data.classId == resource.data.classId; // Class Level Immutability
+      allow delete: if isSignedIn() && isValidId(subjectId);
+    }
+
+    match /chapters/{chapterId} {
+      allow read: if true;
+      allow create: if isSignedIn() && isValidId(chapterId) && isValidChapter(request.resource.data)
+                    && exists(/databases/$(database)/documents/subjects/$(request.resource.data.subjectId));
+      allow update: if isSignedIn() && isValidId(chapterId) && isValidChapter(request.resource.data)
+                    && request.resource.data.subjectId == resource.data.subjectId; // Subject Immutability
+      allow delete: if isSignedIn() && isValidId(chapterId);
+    }
+
+    match /topics/{topicId} {
+      allow read: if true;
+      allow create: if isSignedIn() && isValidId(topicId) && isValidTopic(request.resource.data)
+                    && exists(/databases/$(database)/documents/chapters/$(request.resource.data.chapterId));
+      allow update: if isSignedIn() && isValidId(topicId) && isValidTopic(request.resource.data)
+                    && request.resource.data.chapterId == resource.data.chapterId; // Chapter Immutability
+      allow delete: if isSignedIn() && isValidId(topicId);
+    }
+
+    match /videos/{videoId} {
+      allow read: if true;
+      allow create: if isSignedIn() && isValidId(videoId) && isValidVideo(request.resource.data)
+                    && exists(/databases/$(database)/documents/chapters/$(request.resource.data.chapterId));
+      allow update: if isSignedIn() && isValidId(videoId) && isValidVideo(request.resource.data)
+                    && request.resource.data.chapterId == resource.data.chapterId;
+      allow delete: if isSignedIn() && isValidId(videoId);
+    }
+  }
+}

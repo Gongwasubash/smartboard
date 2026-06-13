@@ -1,0 +1,171 @@
+{
+  "entities": {
+    "Class": {
+      "title": "Class",
+      "description": "A school class level in the curriculum hierarchy",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the class"
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the class (e.g., Class 7)"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The server-side timestamp when the class was created"
+        }
+      },
+      "required": ["id", "name"]
+    },
+    "Subject": {
+      "title": "Subject",
+      "description": "A subjects associated with a specific class",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the subject"
+        },
+        "classId": {
+          "type": "string",
+          "description": "The class ID reference"
+        },
+        "title": {
+          "type": "string",
+          "description": "The primary title of the subject"
+        },
+        "titleNepali": {
+          "type": "string",
+          "description": "The Nepali title translation"
+        },
+        "iconName": {
+          "type": "string",
+          "description": "Icon library element identifier"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp"
+        }
+      },
+      "required": ["id", "classId", "title"]
+    },
+    "Chapter": {
+      "title": "Chapter",
+      "description": "A chapter under a subject",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the chapter"
+        },
+        "subjectId": {
+          "type": "string",
+          "description": "The subject ID reference"
+        },
+        "title": {
+          "type": "string",
+          "description": "Chapter title"
+        },
+        "titleNepali": {
+          "type": "string",
+          "description": "Nepali chapter title translation"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp"
+        }
+      },
+      "required": ["id", "subjectId", "title"]
+    },
+    "Topic": {
+      "title": "Topic",
+      "description": "A direct educational topic within a chapter",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the topic"
+        },
+        "chapterId": {
+          "type": "string",
+          "description": "The parent chapter ID reference"
+        },
+        "title": {
+          "type": "string",
+          "description": "Topic title"
+        },
+        "titleNepali": {
+          "type": "string",
+          "description": "Nepali topic title translation"
+        },
+        "defaultContent": {
+          "type": "string",
+          "description": "Educational reading/reference materials"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp"
+        }
+      },
+      "required": ["id", "chapterId", "title", "defaultContent"]
+    },
+    "Video": {
+      "title": "Video",
+      "description": "A helpful video helper attached to a chapter",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the video"
+        },
+        "chapterId": {
+          "type": "string",
+          "description": "The chapter ID"
+        },
+        "title": {
+          "type": "string",
+          "description": "Title of the video"
+        },
+        "videoUrl": {
+          "type": "string",
+          "description": "URL of the external video file/embed"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp"
+        }
+      },
+      "required": ["id", "chapterId", "title", "videoUrl"]
+    }
+  },
+  "firestore": {
+    "/classes/{classId}": {
+      "schema": { "$ref": "#/entities/Class" },
+      "description": "Classes in the curriculum"
+    },
+    "/subjects/{subjectId}": {
+      "schema": { "$ref": "#/entities/Subject" },
+      "description": "Subjects grouped by classes"
+    },
+    "/chapters/{chapterId}": {
+      "schema": { "$ref": "#/entities/Chapter" },
+      "description": "Chapters grouped by subjects"
+    },
+    "/topics/{topicId}": {
+      "schema": { "$ref": "#/entities/Topic" },
+      "description": "Individual curriculum topics with default contents"
+    },
+    "/videos/{videoId}": {
+      "schema": { "$ref": "#/entities/Video" },
+      "description": "Manual chapter videos attached by class instructors"
+    }
+  }
+}

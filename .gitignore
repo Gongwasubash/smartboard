@@ -1,0 +1,11 @@
+node_modules
+dist
+.env
+.env.local
+*.log
+src/class  1 to 10 book
+public/textbooks/**/*.pdf
+public/textbooks/page_images
+public/textbooks/__pycache__
+server_out.txt
+server_err.txt

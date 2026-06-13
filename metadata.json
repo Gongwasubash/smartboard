@@ -1,0 +1,6 @@
+{
+  "name": "SmatoroAI",
+  "description": "An interactive, AI-powered smart board content system following the SmatoroAI model for modern classrooms, featuring content generation blocks like slides, MCQs, and flashcards.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

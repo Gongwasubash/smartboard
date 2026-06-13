@@ -1,0 +1,12 @@
+{
+  "apiKey": "AIzaSyBWdLKm0JzorxfoqHDJ6mAQeISzq3fDyNI",
+  "authDomain": "smartboard-7af2d.firebaseapp.com",
+  "databaseURL": "https://smartboard-7af2d-default-rtdb.firebaseio.com",
+  "projectId": "smartboard-7af2d",
+  "storageBucket": "smartboard-7af2d.firebasestorage.app",
+  "messagingSenderId": "221507923014",
+  "appId": "1:221507923014:web:d047c80c3594c81d012e47",
+  "measurementId": "G-K1VV2J3X6X",
+  "firestoreDatabaseId": "(default)",
+  "databaseId": "(default)"
+}
