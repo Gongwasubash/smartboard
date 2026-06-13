@@ -123,11 +123,17 @@ export default function App() {
     if (!text) return false;
     // If text contains Nepali Unicode characters, it's already decoded
     if (/[\u0900-\u097F]/.test(text)) return false;
-    // Count "Preeti-like" characters: lowercase letters common in Preeti encoding
-    const preetiChars = (text.match(/[;kfp7slxt\]\[]/g) || []).length;
+    // Preeti-specific characters that are RARE in English text
+    const preetiSpecific = (text.match(/[;`"{}_~^|\\@#$%+=<>]/g) || []).length;
+    // Preeti-heavy chars (very common in Preeti, less in English prose)
+    const preetiHeavy = (text.match(/[fzx;]/g) || []).length;
     const totalChars = text.replace(/\s/g, '').length;
-    // If >20% of non-space chars are Preeti-like, it's likely Preeti-encoded
-    return totalChars > 20 && preetiChars / totalChars > 0.2;
+    if (totalChars < 20) return false;
+    // If many Preeti-specific symbols are present, likely Preeti
+    if (preetiSpecific > 3) return true;
+    // Check ratio of Preeti-heavy chars to total chars
+    if (preetiHeavy / totalChars > 0.12) return true;
+    return false;
   }
 
   // Convert Preeti text to Unicode Nepali
