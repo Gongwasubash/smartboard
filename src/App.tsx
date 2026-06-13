@@ -22,6 +22,7 @@ import {
 import { onAuthStateChanged, User } from 'firebase/auth';
 import TextbookViewer from './TextbookViewer';
 import { TextbookSidebar, TextbookView, SubjectSelection, ChapterSelection } from './TextbookBrowser';
+import { convertFont } from 'preeti-to-unicode';
 
 export default function App() {
   // Authentication State
@@ -117,6 +118,28 @@ export default function App() {
     }
   };
 
+  // Detect if text is Preeti-encoded (not Unicode Nepali, not English)
+  function isPreetiEncoded(text: string): boolean {
+    if (!text) return false;
+    // If text contains Nepali Unicode characters, it's already decoded
+    if (/[\u0900-\u097F]/.test(text)) return false;
+    // Count "Preeti-like" characters: lowercase letters common in Preeti encoding
+    const preetiChars = (text.match(/[;kfp7slxt\]\[]/g) || []).length;
+    const totalChars = text.replace(/\s/g, '').length;
+    // If >20% of non-space chars are Preeti-like, it's likely Preeti-encoded
+    return totalChars > 20 && preetiChars / totalChars > 0.2;
+  }
+
+  // Convert Preeti text to Unicode Nepali
+  function toUnicodeNepali(text: string): string {
+    if (!text) return text;
+    try {
+      return convertFont(text, 'preeti');
+    } catch {
+      return text; // Return as-is if conversion fails
+    }
+  }
+
   // Extract chapter content from textbook markdown using page numbers or title matching
   function extractChapterContent(fullText: string, chapterTitle: string, startPage: number): string {
     if (!fullText) return '';
@@ -135,7 +158,10 @@ export default function App() {
         ? fromStart + nextPageMatch.index!
         : Math.min(fromStart + MAX_CHARS, fullText.length);
       const extracted = fullText.slice(fromStart, endIdx).trim();
-      if (extracted.length > 100) return extracted;
+      if (extracted.length > 100) {
+        if (isPreetiEncoded(extracted)) return toUnicodeNepali(extracted);
+        return extracted;
+      }
     }
 
     // Strategy 2: Title-based extraction (works for English textbooks)
@@ -150,12 +176,17 @@ export default function App() {
           ? fromStart + nextHeading
           : Math.min(fromStart + MAX_CHARS, fullText.length);
         const extracted = fullText.slice(fromStart, endIdx).trim();
-        if (extracted.length > 100) return extracted;
+        if (extracted.length > 100) {
+          if (isPreetiEncoded(extracted)) return toUnicodeNepali(extracted);
+          return extracted;
+        }
       }
     }
 
     // Strategy 3: Send first portion of file content (better than generic prompt)
-    return fullText.slice(0, MAX_CHARS).trim();
+    const prefix = fullText.slice(0, MAX_CHARS).trim();
+    if (isPreetiEncoded(prefix)) return toUnicodeNepali(prefix);
+    return prefix;
   }
   
   // Selected IDs during admin editing
