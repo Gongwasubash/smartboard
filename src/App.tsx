@@ -85,15 +85,29 @@ export default function App() {
   };
 
   // Select chapter from textbook: create a Topic for the AI toolkit
-  const handleTextbookChapterSelect = (ch: ChapterSelection | null) => {
+  const handleTextbookChapterSelect = async (ch: ChapterSelection | null) => {
     setTextbookSelectedChapter(ch);
     if (ch && textbookSelectedSubject) {
       const clsName = textbookSelectedSubject.className;
       const subName = textbookSelectedSubject.filename.replace(/\.(md|pdf)$/, '');
+      
+      // Load actual chapter content from the .md textbook file
+      let chapterContent = '';
+      try {
+        const mdUrl = `/textbooks/${encodeURIComponent(clsName)}/${encodeURIComponent(textbookSelectedSubject.filename)}`;
+        const res = await fetch(mdUrl);
+        if (res.ok) {
+          const fullText = await res.text();
+          chapterContent = extractChapterContent(fullText, ch.title, ch.sectionTitle);
+        }
+      } catch (e) {
+        console.warn('Could not load textbook content:', e);
+      }
+
       const topic: Topic = {
         id: `textbook-${clsName}-${subName}-${ch.page}`,
         title: ch.title,
-        defaultContent: `This is a Grade ${clsName} ${subName} lesson. The chapter/unit is titled "${ch.title}".${ch.sectionTitle ? ` The current section is "${ch.sectionTitle}".` : ''} Generate educational content appropriate for ${clsName} students studying ${subName}.`
+        defaultContent: chapterContent || `This is a Grade ${clsName} ${subName} lesson. The chapter/unit is titled "${ch.title}".${ch.sectionTitle ? ` The current section is "${ch.sectionTitle}".` : ''} Generate educational content appropriate for ${clsName} students studying ${subName}.`
       };
       setSelectedTopic(topic);
       setGeneratedContent(null);
@@ -102,6 +116,60 @@ export default function App() {
       setSelectedTopic(null);
     }
   };
+
+  // Extract chapter content from textbook markdown
+  function extractChapterContent(fullText: string, chapterTitle: string, sectionTitle?: string): string {
+    // Strip "Unit N:" or "Chapter N:" prefix from title for matching
+    const titleClean = chapterTitle.replace(/^(Unit|Chapter)\s+\d+[:\s]+/i, '').trim();
+    
+    // Try to find section first (more specific), then chapter
+    const searchTerms = [sectionTitle, titleClean, chapterTitle].filter(Boolean) as string[];
+    
+    let startIdx = -1;
+    let matchedTerm = '';
+    for (const term of searchTerms) {
+      startIdx = fullText.indexOf(term);
+      if (startIdx !== -1) { matchedTerm = term; break; }
+      // Try first 25 chars
+      if (term.length > 25) {
+        const short = term.substring(0, 25);
+        startIdx = fullText.indexOf(short);
+        if (startIdx !== -1) { matchedTerm = short; break; }
+      }
+    }
+
+    // If not found by title, try chapter number pattern
+    if (startIdx === -1) {
+      const numMatch = chapterTitle.match(/(\d+)/);
+      if (numMatch) {
+        const num = numMatch[1];
+        const patterns = [
+          new RegExp(`\\b(Unit|Chapter)\\s+${num}[\\s:]`, 'i'),
+          new RegExp(`\\bkf7\\s+[${num}!@#$%^&*()]`, 'i'),
+          new RegExp(`^\\s*${num}\\s*$`, 'm'),
+        ];
+        for (const pat of patterns) {
+          const m = fullText.match(pat);
+          if (m) { startIdx = m.index; break; }
+        }
+      }
+    }
+    
+    if (startIdx === -1) return ''; // Nothing found
+    
+    // Move to line start
+    const fromStart = fullText.lastIndexOf('\n', startIdx) + 1;
+    
+    // Find next chapter heading (stop point)
+    const remaining = fullText.slice(fromStart);
+    const nextHeading = remaining.search(/\n(?=(Unit|Chapter|kf7)\s+\d+)/i);
+    
+    const endIdx = nextHeading !== -1
+      ? fromStart + nextHeading
+      : Math.min(fromStart + 8000, fullText.length); // Cap at 8000 chars
+    
+    return fullText.slice(fromStart, endIdx).trim();
+  }
   
   // Selected IDs during admin editing
   const [adminSelectedClassId, setAdminSelectedClassId] = useState<string | null>(null);
