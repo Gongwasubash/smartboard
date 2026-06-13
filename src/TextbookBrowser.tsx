@@ -194,65 +194,84 @@ export function TextbookView({
     );
   }
 
-  if (pdfError) {
-    return (
-      <div className="flex-1 flex flex-col items-center justify-center gap-3 text-slate-400 p-8">
-        <BookOpen className="h-10 w-10 text-slate-300" />
-        <p className="text-sm font-medium">PDF not available</p>
-        <p className="text-xs text-slate-400 text-center">The PDF for this subject could not be loaded.</p>
-      </div>
-    );
-  }
-
   const subjectName = selectedSubject.filename
     .replace(".md", "")
     .replace(".pdf", "")
     .replace(selectedSubject.className, "")
     .replace(/^\s+/, "");
 
+  const pdfUrl = getPdfUrl();
+  const directPdfUrl = pdfUrl.replace(/#page=\d+$/, "");
+
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between px-6 py-3 border-b border-slate-200 bg-slate-50 shrink-0">
-        <div className="flex items-center gap-2.5">
-          <span className="p-1.5 bg-indigo-100 text-indigo-700 rounded-lg">
+      <div className="flex items-center justify-between px-3 sm:px-6 py-2 sm:py-3 border-b border-slate-200 bg-slate-50 shrink-0">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="p-1.5 bg-indigo-100 text-indigo-700 rounded-lg shrink-0">
             <BookText className="h-4 w-4" />
           </span>
-          <div>
-            <h3 className="font-bold text-sm text-slate-900">{subjectName}</h3>
-            <p className="text-[11px] text-slate-500">{selectedSubject.className}</p>
+          <div className="min-w-0">
+            <h3 className="font-bold text-xs sm:text-sm text-slate-900 truncate">{subjectName}</h3>
+            <p className="text-[10px] sm:text-[11px] text-slate-500 truncate">{selectedSubject.className}</p>
             {selectedChapter && (
-              <p className="text-[10px] text-indigo-500 font-medium">
+              <p className="text-[10px] text-indigo-500 font-medium truncate">
                 {selectedChapter.sectionTitle ? `${selectedChapter.title} › ${selectedChapter.sectionTitle}` : selectedChapter.title}
               </p>
             )}
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          {selectedChapter && (
-            <button
-              onClick={() => window.open(getPdfUrl().replace(/#page=\d+$/, ""), "_blank")}
-              className="text-xs text-slate-500 hover:text-indigo-600 bg-white border border-slate-200 px-3 py-1.5 rounded-lg"
-              title="Open PDF in new tab"
-            >
-              Open PDF
-            </button>
-          )}
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={() => window.open(directPdfUrl, "_blank")}
+            className="text-xs text-slate-500 hover:text-indigo-600 bg-white border border-slate-200 px-2 sm:px-3 py-1.5 rounded-lg"
+            title="Open PDF in new tab"
+          >
+            Open PDF
+          </button>
           {onBack && (
-            <button onClick={onBack} className="text-xs text-slate-500 hover:text-indigo-600 bg-white border border-slate-200 px-3 py-1.5 rounded-lg">
+            <button onClick={onBack} className="text-xs text-slate-500 hover:text-indigo-600 bg-white border border-slate-200 px-2 sm:px-3 py-1.5 rounded-lg">
               Back
             </button>
           )}
         </div>
       </div>
-      <div className="flex-1 bg-slate-100">
-        <iframe
-          key={selectedChapter ? `ch-${selectedChapter.page}${selectedChapter.sectionTitle ? '-' + selectedChapter.sectionTitle : ''}` : 'base'}
-          src={getPdfUrl()}
-          className="w-full h-full border-none"
-          title={subjectName}
-        />
-      </div>
-      <div className="px-6 py-2 border-t border-slate-200 bg-slate-50 text-[10px] text-slate-400 text-center shrink-0">
+      {pdfError ? (
+        <div className="flex-1 flex flex-col items-center justify-center gap-4 text-slate-400 p-6 sm:p-8">
+          <BookOpen className="h-12 w-12 text-slate-300" />
+          <div className="text-center max-w-sm space-y-2">
+            <p className="text-sm font-medium text-slate-600">PDF viewer unavailable</p>
+            <p className="text-xs text-slate-400">Your browser cannot display this PDF inline. Open it in a new tab or download it.</p>
+          </div>
+          <div className="flex gap-3">
+            <a
+              href={directPdfUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4 py-2 rounded-xl transition-colors"
+            >
+              Open PDF in New Tab
+            </a>
+            <a
+              href={directPdfUrl}
+              download
+              className="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold px-4 py-2 rounded-xl border border-slate-200 transition-colors"
+            >
+              Download PDF
+            </a>
+          </div>
+        </div>
+      ) : (
+        <div className="flex-1 bg-slate-100">
+          <iframe
+            key={selectedChapter ? `ch-${selectedChapter.page}${selectedChapter.sectionTitle ? '-' + selectedChapter.sectionTitle : ''}` : 'base'}
+            src={pdfUrl}
+            className="w-full h-full border-none"
+            title={subjectName}
+            onError={() => setPdfError(true)}
+          />
+        </div>
+      )}
+      <div className="px-3 sm:px-6 py-2 border-t border-slate-200 bg-slate-50 text-[10px] text-slate-400 text-center shrink-0">
         Nepal Government Textbook &middot; Curriculum Development Centre
       </div>
     </div>
